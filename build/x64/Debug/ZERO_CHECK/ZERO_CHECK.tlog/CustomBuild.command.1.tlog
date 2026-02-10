@@ -1,0 +1,10 @@
+^C:\DEV\GLIB\BUILD\CMAKEFILES\400E14F964561D9156F9CBC7FE13953A\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/dev/GLib -BC:/dev/GLib/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/dev/GLib/build/GLib.slnx
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

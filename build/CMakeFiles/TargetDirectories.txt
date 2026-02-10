@@ -1,0 +1,4 @@
+C:/dev/GLib/build/CMakeFiles/ALL_BUILD.dir
+C:/dev/GLib/build/CMakeFiles/ZERO_CHECK.dir
+C:/dev/GLib/build/GLib/src/CMakeFiles/GLib.dir
+C:/dev/GLib/build/Example/CMakeFiles/Example.dir

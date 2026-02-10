@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/dev/GLib/build/cmake_install.cmake",
+		"C:/dev/GLib/build/GLib/src/cmake_install.cmake",
+		"C:/dev/GLib/build/Example/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
