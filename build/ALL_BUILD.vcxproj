@@ -182,6 +182,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Project>{9DE904BA-9376-3431-93B0-52D0CF29C0EB}</Project>
       <Name>GLib</Name>
     </ProjectReference>
+    <ProjectReference Include="C:\dev\GLib\build\GLib\src\glad.vcxproj">
+      <Project>{EA741547-DC32-36B1-AA25-E2978115485B}</Project>
+      <Name>glad</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,5 +1,5 @@
 #pragma once
 
-auto test() {
-    return "Test!";
-}
+int window();
+
+char* test();
