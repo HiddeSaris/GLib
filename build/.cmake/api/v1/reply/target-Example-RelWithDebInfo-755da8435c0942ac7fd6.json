@@ -2,10 +2,10 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "Example/Release/Example.exe"
+			"path" : "Example/RelWithDebInfo/Example.exe"
 		},
 		{
-			"path" : "Example/Release/Example.pdb"
+			"path" : "Example/RelWithDebInfo/Example.pdb"
 		}
 	],
 	"backtrace" : 1,
@@ -44,7 +44,7 @@
 			{
 				"command" : 1,
 				"file" : 1,
-				"line" : 37,
+				"line" : 38,
 				"parent" : 3
 			}
 		]
@@ -67,7 +67,7 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "/DWIN32 /D_WINDOWS /GR /EHsc /O2 /Ob2 /DNDEBUG -MD"
+					"fragment" : "/DWIN32 /D_WINDOWS /GR /EHsc /Zi /O2 /Ob1 /DNDEBUG -MD"
 				}
 			],
 			"includes" : 
@@ -108,11 +108,11 @@
 		"commandFragments" : 
 		[
 			{
-				"fragment" : "/DWIN32 /D_WINDOWS /GR /EHsc /O2 /Ob2 /DNDEBUG -MD",
+				"fragment" : "/DWIN32 /D_WINDOWS /GR /EHsc /Zi /O2 /Ob1 /DNDEBUG -MD",
 				"role" : "flags"
 			},
 			{
-				"fragment" : "/machine:x64 /INCREMENTAL:NO",
+				"fragment" : "/machine:x64 /debug /INCREMENTAL",
 				"role" : "flags"
 			},
 			{
@@ -121,12 +121,12 @@
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "..\\GLib\\src\\Release\\GLib.lib",
+				"fragment" : "..\\GLib\\src\\RelWithDebInfo\\GLib.lib",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 4,
-				"fragment" : "..\\GLib\\src\\Release\\glad.lib",
+				"fragment" : "..\\GLib\\src\\RelWithDebInfo\\glad.lib",
 				"role" : "libraries"
 			},
 			{

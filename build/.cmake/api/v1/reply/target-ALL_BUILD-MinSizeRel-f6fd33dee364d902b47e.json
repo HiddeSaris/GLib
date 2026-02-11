@@ -22,13 +22,13 @@
 	"dependencies" : 
 	[
 		{
-			"id" : "Example::@358d8db68dd7622887b4"
-		},
-		{
 			"id" : "glad::@462a749f674b08885bd7"
 		},
 		{
 			"id" : "GLib::@462a749f674b08885bd7"
+		},
+		{
+			"id" : "Example::@358d8db68dd7622887b4"
 		},
 		{
 			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
@@ -40,13 +40,13 @@
 	"orderDependencies" : 
 	[
 		{
-			"id" : "Example::@358d8db68dd7622887b4"
-		},
-		{
 			"id" : "glad::@462a749f674b08885bd7"
 		},
 		{
 			"id" : "GLib::@462a749f674b08885bd7"
+		},
+		{
+			"id" : "Example::@358d8db68dd7622887b4"
 		}
 	],
 	"paths" : 

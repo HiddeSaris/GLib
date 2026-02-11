@@ -308,7 +308,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="C:\dev\GLib\GLib\src\test.cpp" />
+    <ClCompile Include="C:\dev\GLib\GLib\src\Window.cpp" />
+    <ClCompile Include="C:\dev\GLib\GLib\src\Input.cpp" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

@@ -25,7 +25,8 @@ set_target_properties(glfw3 PROPERTIES
 # ---- GLib library ----
 
 add_library(GLib
-    test.cpp
+    Window.cpp
+    Input.cpp
 )
 
 target_include_directories(GLib
