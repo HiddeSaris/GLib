@@ -1,0 +1,8 @@
+================================================================================
+Linker Errors
+Generated: 2026-05-14T17:32:43.178Z
+Total Errors: 1
+================================================================================
+
+[LNK4098] (MSVC)
+defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library [C:\dev\GLib\build\Example\Example.vcxproj]

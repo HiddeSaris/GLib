@@ -12,6 +12,7 @@
 		<BuildDependency Project="GLib/src/GLib.vcxproj"/>
 		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
 		<BuildDependency Project="GLib/src/glad.vcxproj"/>
+		<BuildDependency Project="GLib/src/stb_image.vcxproj"/>
 		<Build Solution="Debug|*" Project="false"/>
 		<Build Solution="Release|*" Project="false"/>
 		<Build Solution="MinSizeRel|*" Project="false"/>
@@ -21,13 +22,18 @@
 		<BuildDependency Project="GLib/src/GLib.vcxproj"/>
 		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
 		<BuildDependency Project="GLib/src/glad.vcxproj"/>
+		<BuildDependency Project="GLib/src/stb_image.vcxproj"/>
 	</Project>
 	<Project Path="GLib/src/GLib.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="9de904ba-9376-3431-93b0-52d0cf29c0eb">
 		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
 		<BuildDependency Project="GLib/src/glad.vcxproj"/>
+		<BuildDependency Project="GLib/src/stb_image.vcxproj"/>
 	</Project>
 	<Project Path="ZERO_CHECK.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="68941a1b-e802-340e-bbf5-fad3098b113f"/>
 	<Project Path="GLib/src/glad.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="ea741547-dc32-36b1-aa25-e2978115485b">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="GLib/src/stb_image.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="cb8c6408-053d-38c4-962e-5f8c18e0b429">
 		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
 	</Project>
 </Solution>

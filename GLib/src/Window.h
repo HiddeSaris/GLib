@@ -8,23 +8,31 @@ struct GLFWwindow;
 namespace GLib {
     class Window {
     public:
-        Window(int width, int height, std::string title);
-        ~Window();
-        void Update();
-        void SetVSync(bool enabled);
-        void HideCursor();
-        void DisableCursor();
-        void ShowCursor();
-        void ConfineCursor();
+        static void Init(int width, int height, std::string title);
+        static void Close();
+
+        static void Update();
+        static void SetVSync(bool enabled);
+        static void HideCursor();
+        static void DisableCursor();
+        static void ShowCursor();
+        static void ConfineCursor();
+
+        static double GetTime();
+        
+        static int GetWidth() { return s_Width; }
+        static int GetHeight() { return s_Height; }
+        static std::string GetTitle() { return s_Title; }
+        static GLFWwindow* GetWindowID() { return s_Window; }
     private:
-        int m_Width;
-        int m_Height;
-        std::string m_Title;
-        GLFWwindow* m_Window;
-        bool VSyncEnabled = false;
+        static int s_Width;
+        static int s_Height;
+        static std::string s_Title;
+        static GLFWwindow* s_Window;
+        static bool s_VSyncEnabled;
     private:
-        void InitGLFW();
-        void InitOpenGL();
+        static void InitGLFW();
+        static void InitOpenGL();
         static void FramebufferSizeCallback(GLFWwindow* window, int width, int height); 
         static void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset); 
     };

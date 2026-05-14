@@ -186,6 +186,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Project>{EA741547-DC32-36B1-AA25-E2978115485B}</Project>
       <Name>glad</Name>
     </ProjectReference>
+    <ProjectReference Include="C:\dev\GLib\build\GLib\src\stb_image.vcxproj">
+      <Project>{CB8C6408-053D-38C4-962E-5F8C18E0B429}</Project>
+      <Name>stb_image</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

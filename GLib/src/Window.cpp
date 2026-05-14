@@ -1,5 +1,6 @@
 #include "Window.h"
 #include "Input.h"
+#include "Renderer/Render.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -7,15 +8,24 @@ namespace GLib {
 
     static int s_GLFWWindowCount = 0;
 
-    Window::Window(int width, int height, std::string title) 
-        : m_Width(width), m_Height(height), m_Title(title)
+    bool Window::s_VSyncEnabled = false;
+    int Window::s_Width = 0;
+    int Window::s_Height = 0;
+    std::string Window::s_Title = "";
+    GLFWwindow* Window::s_Window = nullptr;
+
+    void Window::Init(int width, int height, std::string title)
     {
+        s_Width = width;
+        s_Height = height;
+        s_Title = title;
         InitGLFW();
         InitOpenGL();
     }
-    
-    Window::~Window() {
-        glfwDestroyWindow(m_Window);
+
+    void Window::Close()
+    {
+        glfwDestroyWindow(s_Window);
         s_GLFWWindowCount--;
 
         if (s_GLFWWindowCount == 0){
@@ -23,12 +33,13 @@ namespace GLib {
         }
     }
 
-    void Window::Update() {
+    void Window::Update()
+    {
         Input::Update();
-        if (glfwWindowShouldClose(m_Window)) {
+        if (glfwWindowShouldClose(s_Window)) {
             exit(0);
         }
-        glfwSwapBuffers(m_Window);
+        glfwSwapBuffers(s_Window);
     }
 
     void Window::InitGLFW() {
@@ -44,22 +55,21 @@ namespace GLib {
             exit(1);
         }
         
-        m_Window = glfwCreateWindow(m_Width, m_Height, m_Title.c_str(), NULL, NULL);
-        if (m_Window == NULL)
+        s_Window = glfwCreateWindow(s_Width, s_Height, s_Title.c_str(), NULL, NULL);
+        if (s_Window == NULL)
         {
             std::cout << "Failed to create GLFW window" << std::endl;
             glfwTerminate();
             exit(1);
         }
-        glfwMakeContextCurrent(m_Window);
-
-        Input::Init(m_Window);
+        glfwMakeContextCurrent(s_Window);
+        
+        Input::Init(s_Window);
 
         SetVSync(true);
 
-        glfwSetWindowUserPointer(m_Window, this);
-        glfwSetFramebufferSizeCallback(m_Window, FramebufferSizeCallback);
-        glfwSetScrollCallback(m_Window, ScrollCallback);
+        glfwSetFramebufferSizeCallback(s_Window, FramebufferSizeCallback);
+        glfwSetScrollCallback(s_Window, ScrollCallback);
     }
 
     void Window::InitOpenGL() {
@@ -69,13 +79,14 @@ namespace GLib {
             exit(1);
         }  
 
-        glViewport(0, 0, m_Width, m_Height);
+        glViewport(0, 0, s_Width, s_Height);
+        
+        Render::Init();
     }
 
     void Window::FramebufferSizeCallback(GLFWwindow* window, int width, int height) {
-        Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
-        win->m_Width = width;
-        win->m_Height = height;
+        s_Width = width;
+        s_Height = height;
         glViewport(0, 0, width, height);
     } 
 
@@ -89,35 +100,40 @@ namespace GLib {
 			glfwSwapInterval(1);
 		else
 			glfwSwapInterval(0);
-            VSyncEnabled = enabled;
+            s_VSyncEnabled = enabled;
     }
 
     void Window::HideCursor() {
         if (glfwRawMouseMotionSupported()) // turn off raw mouse motion
-            glfwSetInputMode(m_Window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
+            glfwSetInputMode(s_Window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
 
-        glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        glfwSetInputMode(s_Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
 
     void Window::DisableCursor() {
         if (glfwRawMouseMotionSupported()) // turn on raw mouse motion
-            glfwSetInputMode(m_Window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+            glfwSetInputMode(s_Window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
-        glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwSetInputMode(s_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
 
     void Window::ShowCursor() {
         if (glfwRawMouseMotionSupported()) // turn off raw mouse motion
-            glfwSetInputMode(m_Window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
+            glfwSetInputMode(s_Window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
 
-        glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        glfwSetInputMode(s_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
 
     void Window::ConfineCursor() {
         if (glfwRawMouseMotionSupported()) // turn off raw mouse motion
-            glfwSetInputMode(m_Window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
+            glfwSetInputMode(s_Window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
 
-        glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_CAPTURED);
+        glfwSetInputMode(s_Window, GLFW_CURSOR, GLFW_CURSOR_CAPTURED);
+    }
+
+    double Window::GetTime()
+    {
+        return glfwGetTime();
     }
 
 }
