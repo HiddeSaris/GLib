@@ -6,18 +6,32 @@
 
 namespace GLib{
 
+    enum class TextureType {
+        Diffuse,
+        Specular,
+        Albedo,
+    };
+
+    // std::string TextureTypeToString(TextureType type){
+    //     switch(type){
+    //         case TextureType::Diffuse:
+    //         return ""
+    //     }
+    // }
+
     struct TextureSpecification {
         uint32_t Width = 1;
         uint32_t Height = 1;
         uint32_t DataFormat = 0x1908; //GL_RGBA;
         uint32_t InternalFormat = 0x8058; //GL_RGBA8;
+        TextureType Type = TextureType::Diffuse;
         bool GenerateMips = true;
     };
 
     class Texture {
     public:
         Texture(const TextureSpecification& specification);
-        Texture(const std::string& path);
+        Texture(const std::string& path, TextureType type);
         ~Texture();
 
         const TextureSpecification& GetSpecification() const { return m_Specification; }
@@ -25,6 +39,7 @@ namespace GLib{
         uint32_t GetWidth() const { return m_Width; }
         uint32_t GetHeight() const { return m_Height; }
         uint32_t GetRendererID() const { return m_RendererID; }
+        TextureType GetType() const { return m_Type; }
 
         const std::string& GetPath() const { return m_Path; }
 
@@ -39,6 +54,7 @@ namespace GLib{
         }
     private:
         TextureSpecification m_Specification;
+        TextureType m_Type = TextureType::Diffuse;
 
         std::string m_Path;
         bool m_IsLoaded = false;

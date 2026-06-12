@@ -9,7 +9,8 @@ namespace GLib {
 
     Texture::Texture(const TextureSpecification &specification)
         : m_Specification(specification), m_Width(m_Specification.Width), m_Height(m_Specification.Height),
-        m_DataFormat(m_Specification.DataFormat), m_InternalFormat(m_Specification.InternalFormat)
+        m_DataFormat(m_Specification.DataFormat), m_InternalFormat(m_Specification.InternalFormat),
+        m_Type(m_Specification.Type)
     {
         glGenTextures(1, &m_RendererID);
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
@@ -33,8 +34,8 @@ namespace GLib {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     }
 
-    Texture::Texture(const std::string &path)
-        : m_Path(path)
+    Texture::Texture(const std::string &path, TextureType type)
+        : m_Path(path), m_Type(type)
     {
         int width, height, channels;
         stbi_set_flip_vertically_on_load(1);

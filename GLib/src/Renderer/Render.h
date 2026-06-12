@@ -4,6 +4,7 @@
 #include "Shader.h"
 #include "Camera.h"
 #include "Texture.h"
+#include "Model.h"
 
 #include <memory>
 
@@ -21,10 +22,12 @@ namespace GLib {
         static void Clear();
 
         static void RenderQuad(const glm::vec3& position);
-        static void RenderQuad(const glm::vec3& position, const std::shared_ptr<Texture>& texture);
+        static void RenderQuad(const glm::vec3& position, const Texture& texture);
         static void RenderCube(const glm::vec3& position);
 
-        static void Submit(const std::shared_ptr<VertexArray>& vertexArray, const std::shared_ptr<Texture>& texture, const glm::mat4& transformation, uint32_t indexCount = 0);
+        static void Submit(const VertexArray& vertexArray, const Texture& texture, const glm::mat4& transformation, uint32_t indexCount = 0);
+        static void Submit(const Mesh& mesh, const glm::mat4& transform);
+        static void Submit(Model& model, const glm::mat4& transform);
     private:
 
     };

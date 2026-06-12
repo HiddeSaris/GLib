@@ -12,13 +12,13 @@ namespace GLib {
     class Shader {
     public:
         Shader(const std::string& filepath);
-        Shader(const std::string& vertexSrc, const std::string& fragmentSrc);
+        Shader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
         ~Shader();
 
         void Bind() const;
         void Unbind() const;
 
-        // const std::string& GetName() const { return m_Name; }
+        const std::string& GetName() const { return m_Name; }
         
         // void SetInt(const std::string& name, int value);
         // void SetIntArray(const std::string& name, int* values, uint32_t count);
@@ -43,7 +43,7 @@ namespace GLib {
     private:
         uint32_t m_RendererID;
         std::string m_FilePath;
-        // std::string m_Name;
+        std::string m_Name;
     };
 
 }

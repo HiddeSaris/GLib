@@ -33,7 +33,6 @@ namespace GLib {
         for(const BufferElement& element : layout){
 
             if (element.IsMatrix){
-                std::cout << "Mat!";
                 for (uint32_t i = 0; i < element.Amount; i++){
                     glEnableVertexAttribArray(m_VertexBufferIndex);
                     glVertexAttribPointer(m_VertexBufferIndex, 
@@ -59,7 +58,6 @@ namespace GLib {
                 m_VertexBufferIndex++;
             }
             else { // GL_INT or GL_BOOL
-                std::cout << "Int/Bool!";
                 glEnableVertexAttribArray(m_VertexBufferIndex);
                 glVertexAttribIPointer(m_VertexBufferIndex, 
                     element.Amount,
@@ -80,6 +78,11 @@ namespace GLib {
         indexBuffer->Bind();
 
         m_IndexBuffer = indexBuffer;
+    }
+
+    void VertexArray::DeleteVertexArrays()
+    {
+        glDeleteVertexArrays(1, &m_RenderID);
     }
 
 }

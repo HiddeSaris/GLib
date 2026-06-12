@@ -1,9 +1,0 @@
-C:\dev\GLib\GLib\src\Window.cpp;C:\dev\GLib\build\GLib\src\GLib.dir\Debug\Window.obj
-C:\dev\GLib\GLib\src\Input.cpp;C:\dev\GLib\build\GLib\src\GLib.dir\Debug\Input.obj
-C:\dev\GLib\GLib\src\Renderer\Buffer.cpp;C:\dev\GLib\build\GLib\src\GLib.dir\Debug\Buffer.obj
-C:\dev\GLib\GLib\src\Renderer\BufferLayout.cpp;C:\dev\GLib\build\GLib\src\GLib.dir\Debug\BufferLayout.obj
-C:\dev\GLib\GLib\src\Renderer\PerspectiveCamera.cpp;C:\dev\GLib\build\GLib\src\GLib.dir\Debug\PerspectiveCamera.obj
-C:\dev\GLib\GLib\src\Renderer\Render.cpp;C:\dev\GLib\build\GLib\src\GLib.dir\Debug\Render.obj
-C:\dev\GLib\GLib\src\Renderer\Shader.cpp;C:\dev\GLib\build\GLib\src\GLib.dir\Debug\Shader.obj
-C:\dev\GLib\GLib\src\Renderer\VertexArray.cpp;C:\dev\GLib\build\GLib\src\GLib.dir\Debug\VertexArray.obj
-C:\dev\GLib\GLib\src\Renderer\Texture.cpp;C:\dev\GLib\build\GLib\src\GLib.dir\Debug\Texture.obj

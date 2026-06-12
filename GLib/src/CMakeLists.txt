@@ -34,9 +34,23 @@ set(STB_ROOT ${PROJECT_SOURCE_DIR}/GLib/vendor/stb_image)
 add_library(stb_image STATIC ${STB_ROOT}/include/stb_image.cpp)
 target_include_directories(stb_image PUBLIC ${STB_ROOT}/include)
 
+# ---- ASSIMP ----
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "" FORCE)
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+set(CMAKE_DEBUG_POSTFIX "" CACHE STRING "" FORCE)
+
+set(CMAKE_BUILD_TYPE_SAVED ${CMAKE_BUILD_TYPE})
+set(CMAKE_BUILD_TYPE Release)
+add_subdirectory(${PROJECT_SOURCE_DIR}/GLib/vendor/assimp ${CMAKE_BINARY_DIR}/assimp)
+set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE_SAVED})
+
+#set_property(TARGET assimp PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+
 # ---- GLib library ----
 
-add_library(GLib
+add_library(GLib STATIC
     Window.cpp
     Input.cpp
     Renderer/Buffer.cpp
@@ -46,6 +60,8 @@ add_library(GLib
     Renderer/Shader.cpp
     Renderer/VertexArray.cpp
     Renderer/Texture.cpp
+    Renderer/Model.cpp
+    Renderer/Mesh.cpp
 )
 
 target_include_directories(GLib
@@ -56,6 +72,6 @@ target_include_directories(GLib
 )
 
 target_link_libraries(GLib
-    PUBLIC glm
+    PUBLIC glm assimp
     PRIVATE glad glfw3 opengl32 stb_image
 )

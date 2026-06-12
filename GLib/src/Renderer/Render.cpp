@@ -21,7 +21,8 @@ namespace GLib {
         
         std::shared_ptr<Texture> WhiteTexture;
 
-        glm::mat4 s_ViewProjection = glm::mat4(1.0f);
+        glm::mat4 ViewProjection = glm::mat4(1.0f);
+        glm::vec3 CamPosition = glm::vec3(0.0f);
     };
 
     static RenderData s_Data;
@@ -29,16 +30,20 @@ namespace GLib {
     void Render::Init() {
         
         SetClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glDisable(GL_CULL_FACE);
+        //glEnable(GL_CULL_FACE);
 
         float quadVertices[] = {
-            // position           // color                  // texture coord
-             1.0f,  1.0f, 0.0f,   1.0f, 0.0f, 0.0f, 1.0f,   1.0f, 1.0f,
-             1.0f, -1.0f, 0.0f,   0.0f, 1.0f, 0.0f, 1.0f,   1.0f, 0.0f,
-            -1.0f, -1.0f, 0.0f,   0.0f, 0.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-            -1.0f,  1.0f, 0.0f,   1.0f, 1.0f, 0.0f, 1.0f,   0.0f, 1.0f
+            // position          // normal         // texture coord   // color                  
+             1.0f,  1.0f, 0.0f,  0.0f, 0.0f, -1.0f,   1.0f, 1.0f,   1.0f, 1.0f, 1.0f, 1.0f,
+             1.0f, -1.0f, 0.0f,  0.0f, 0.0f, -1.0f,   1.0f, 0.0f,   1.0f, 1.0f, 1.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f,  0.0f, 0.0f, -1.0f,   0.0f, 0.0f,   1.0f, 1.0f, 1.0f, 1.0f,
+            -1.0f,  1.0f, 0.0f,  0.0f, 0.0f, -1.0f,   0.0f, 1.0f,   1.0f, 1.0f, 1.0f, 1.0f,
         };  
 
-        uint32_t quadIndices[] = {0,1,3, 1,2,3};
+        uint32_t quadIndices[] = {3,1,0, 3,2,1};
 
         s_Data.QuadVA = std::make_shared<VertexArray>();
         s_Data.QuadVA->Bind();
@@ -46,8 +51,9 @@ namespace GLib {
         
         vb->SetLayout({
             { "a_Position", GL_FLOAT, 3 },
+            { "a_Normal", GL_FLOAT, 3 },
+            { "a_TexCoord", GL_FLOAT, 2 },
             { "a_Color", GL_FLOAT, 4 },
-            { "a_TexCoord", GL_FLOAT, 2 }
         });
         s_Data.QuadVA->AddVertexBuffer(vb);
 
@@ -89,14 +95,16 @@ namespace GLib {
         std::shared_ptr<VertexBuffer> cubevb = std::make_shared<VertexBuffer>(cubeVertices, sizeof(cubeVertices));
         cubevb->SetLayout({
             { "a_Position", GL_FLOAT, 3 },
+            { "a_Normal", GL_FLOAT, 3 },
+            { "a_TexCoord", GL_FLOAT, 2 },
             { "a_Color", GL_FLOAT, 4 },
-            { "a_TexCoord", GL_FLOAT, 2 }
         });
         s_Data.CubeVA->AddVertexBuffer(cubevb);
 
 
         std::shared_ptr<IndexBuffer> cubeib = std::make_shared<IndexBuffer>(cubeIndices, 36);
         s_Data.CubeVA->SetIndexBuffer(cubeib);
+        s_Data.CubeVA->Unbind();
 
         s_Data.WhiteTexture = std::make_shared<Texture>(TextureSpecification());
         uint32_t white = 0xffffffff;
@@ -106,13 +114,13 @@ namespace GLib {
         s_Data.TextureShader = std::make_shared<Shader>("assets/shaders/Texture.glsl");
 
         s_Data.TextureShader->Bind();
-        s_Data.TextureShader->UploadUniformInt("u_Texture", 0);
     }
 
     void Render::BeginFrame(Camera camera)
     {
         Clear();
-        s_Data.s_ViewProjection = camera.GetViewProjection();
+        s_Data.ViewProjection = camera.GetViewProjection();
+        s_Data.CamPosition = camera.GetPosition();
     }
 
     void Render::EndFrame()
@@ -129,28 +137,72 @@ namespace GLib {
     }
 
     void Render::RenderQuad(const glm::vec3& position) {
-        RenderQuad(position, s_Data.WhiteTexture);
+        RenderQuad(position, *s_Data.WhiteTexture);
     }
 
-    void Render::RenderQuad(const glm::vec3& position, const std::shared_ptr<Texture>& texture) {
+    void Render::RenderQuad(const glm::vec3& position, const Texture& texture) {
         glm::mat4 trans = glm::mat4(1.0f);
         trans = glm::rotate(trans, glm::radians((float)glfwGetTime() * 90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         trans = glm::scale(trans, glm::vec3(1.0f));
-        Submit(s_Data.QuadVA, texture, trans);
+        Submit(*s_Data.QuadVA, texture, trans);
     }
 
     void Render::RenderCube(const glm::vec3& position) {
-        Submit(s_Data.CubeVA, s_Data.WhiteTexture, glm::translate(glm::mat4(1.0f), position));
+        Submit(*s_Data.CubeVA, *s_Data.WhiteTexture, glm::translate(glm::mat4(1.0f), position));
     }
 
-    void Render::Submit(const std::shared_ptr<VertexArray>& vertexArray, const std::shared_ptr<Texture>& texture, const glm::mat4& transformation, uint32_t indexCount)
+    void Render::Submit(const VertexArray& vertexArray, const Texture& texture, const glm::mat4& transformation, uint32_t indexCount)
     {
-        texture->Bind();
+        texture.Bind(0);
         s_Data.TextureShader->Bind();
-        s_Data.TextureShader->UploadUniformMat4("u_Transform", s_Data.s_ViewProjection * transformation);
-        vertexArray->Bind();
+        s_Data.TextureShader->UploadUniformMat4("u_ViewProjection", s_Data.ViewProjection);
+        s_Data.TextureShader->UploadUniformMat4("u_Model", transformation);
+        s_Data.TextureShader->UploadUniformFloat3("u_ViewPos", s_Data.CamPosition);
+        s_Data.TextureShader->UploadUniformFloat3("u_Light.position", glm::vec3(0.5f));
+        s_Data.TextureShader->UploadUniformFloat3("u_Light.ambient", glm::vec3(0.8f, 0.3f, 0.6f));
+        s_Data.TextureShader->UploadUniformFloat3("u_Light.diffuse", glm::vec3(0.8f, 0.3f, 0.6f));
+        s_Data.TextureShader->UploadUniformFloat3("u_Light.specular", glm::vec3(0.8f, 0.3f, 0.6f));
+        s_Data.TextureShader->UploadUniformFloat("u_MaterialShininess", 32.0f);
+        vertexArray.Bind();
 
-        uint32_t count = indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetCount();
+        uint32_t count = indexCount ? indexCount : vertexArray.GetIndexBuffer()->GetCount();
         glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
     }
+
+    void Render::Submit(const Mesh &mesh, const glm::mat4 &transform)
+    {
+        s_Data.TextureShader->Bind();
+        s_Data.TextureShader->UploadUniformMat4("u_ViewProjection", s_Data.ViewProjection);
+        s_Data.TextureShader->UploadUniformMat4("u_Model", transform);
+        s_Data.TextureShader->UploadUniformFloat3("u_ViewPos", s_Data.CamPosition);
+        s_Data.TextureShader->UploadUniformFloat3("u_Light.position", glm::vec3(20.0f));
+        s_Data.TextureShader->UploadUniformFloat3("u_Light.ambient", glm::vec3(0.8f, 0.5f, 0.3f));
+        s_Data.TextureShader->UploadUniformFloat3("u_Light.diffuse", glm::vec3(0.8f, 0.5f, 0.3f));
+        s_Data.TextureShader->UploadUniformFloat3("u_Light.specular", glm::vec3(0.8f, 0.5f, 0.3f));
+        s_Data.TextureShader->UploadUniformFloat("u_MaterialShininess", 32.0f);
+        //std::cout << GL_MAX_VERTEX_UNIFORM_COMPONENTS << "\n";
+        
+        if (mesh.GetTextures().size() == 0){
+            s_Data.WhiteTexture->Bind(0);
+        }
+        else {
+            for (uint32_t i = 0; i < mesh.GetTextures().size(); i++){
+                mesh.GetTextures()[i]->Bind(i);
+            }
+        }
+        
+        mesh.Bind(*s_Data.TextureShader);
+
+        glDrawElements(GL_TRIANGLES, mesh.GetVertexArray().GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+        glActiveTexture(GL_TEXTURE0);
+    }
+
+    void Render::Submit(Model &model, const glm::mat4& transform)
+    {
+        for (std::shared_ptr<Mesh> mesh : model.GetMeshes()) {
+            Submit(*mesh, transform);
+        }
+    }
+
 }

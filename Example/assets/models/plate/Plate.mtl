@@ -1,0 +1,54 @@
+# 
+# Wavefront material file
+# Converted by the DEEP Exploration  Deep Exploration 6.3 x64 6.3.3.8069
+# Right Hemisphere, LTD
+# http://www.righthemisphere.com/
+# 
+
+newmtl Dumplings
+Ka 0.815686 0.815686 0.815686
+Kd 1 1 1
+Ks 1 1 1
+illum 2
+Ns 256
+map_Kd bulion1.png
+map_bump 
+bump 
+map_opacity 
+map_d 
+refl 
+map_kS 
+map_kA 
+map_Ns 
+
+newmtl Water
+Ka 0.815686 0.815686 0.815686
+Kd 1 1 1
+Ks 1 1 1
+illum 2
+Ns 256
+map_Kd bulion.png
+map_bump 
+bump 
+map_opacity 
+map_d 
+refl 
+map_kS 
+map_kA 
+map_Ns 
+
+newmtl Plate
+Ka 0.815686 0.815686 0.815686
+Kd 1 1 1
+Ks 1 1 1
+illum 2
+Ns 256
+map_Kd tarelka.png
+map_bump 
+bump 
+map_opacity 
+map_d 
+refl 
+map_kS 
+map_kA 
+map_Ns 

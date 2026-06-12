@@ -26,7 +26,6 @@ namespace GLib
         void SetNearPlane(float near)           { m_Near = near; UpdateProjection(); }
         void SetFarPlane(float far)             { m_Far = far; UpdateProjection(); }
 
-        const glm::vec3& GetPosition() const { return m_Position; }
         float GetYaw() const { return m_Yaw; }
         float GetPitch() const { return m_Pitch; }
         float GetRoll() const { return m_Roll; }
@@ -40,8 +39,6 @@ namespace GLib
         void UpdateView();
         void UpdateProjection();
     private:
-        glm::vec3 m_Position = glm::vec3(0.0f, 0.0f, 0.0f);
-        glm::vec3 m_Direction = glm::vec3(0.0f, 0.0f, -1.0f);
         glm::vec3 m_Up = glm::vec3(0.0f, 0.1f, 0.0f);
         glm::vec3 m_Right = glm::vec3(1.0f, 0.0f, 0.0f);
         float m_Yaw = 0.0f;
