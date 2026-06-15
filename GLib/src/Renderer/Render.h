@@ -5,25 +5,30 @@
 #include "Camera.h"
 #include "Texture.h"
 #include "Model.h"
+#include "Scene/Scene.h"
 
 #include <memory>
 
 namespace GLib {
 
+    std::shared_ptr<Scene> CreateScene();
 
     class Render {
     public:
         static void Init();
 
-        static void BeginFrame(Camera camera);
+        static void BeginFrame(Camera camera, glm::mat4 transform, glm::vec3 camPos);
+        static void BeginFrame(glm::mat4 viewProjection, glm::vec3 camPos);
         static void EndFrame();
 
         static void SetClearColor(float r, float g, float b, float a);
         static void Clear();
 
-        static void RenderQuad(const glm::vec3& position);
-        static void RenderQuad(const glm::vec3& position, const Texture& texture);
-        static void RenderCube(const glm::vec3& position);
+        static void OnViewportResize(uint32_t width, uint32_t height);
+
+        // static void RenderQuad(const glm::vec3& position);
+        // static void RenderQuad(const glm::vec3& position, const Texture& texture);
+        // static void RenderCube(const glm::vec3& position);
 
         static void Submit(const VertexArray& vertexArray, const Texture& texture, const glm::mat4& transformation, uint32_t indexCount = 0);
         static void Submit(const Mesh& mesh, const glm::mat4& transform);

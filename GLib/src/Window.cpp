@@ -89,6 +89,7 @@ namespace GLib {
         s_Width = width;
         s_Height = height;
         glViewport(0, 0, width, height);
+        Render::OnViewportResize(width, height);
     } 
 
     void Window::ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {

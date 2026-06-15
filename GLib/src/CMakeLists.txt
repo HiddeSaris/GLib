@@ -34,6 +34,12 @@ set(STB_ROOT ${PROJECT_SOURCE_DIR}/GLib/vendor/stb_image)
 add_library(stb_image STATIC ${STB_ROOT}/include/stb_image.cpp)
 target_include_directories(stb_image PUBLIC ${STB_ROOT}/include)
 
+# ---- ENTT ----
+set(ENTT_ROOT ${PROJECT_SOURCE_DIR}/GLib/vendor/entt)
+
+add_library(entt INTERFACE)
+target_include_directories(entt INTERFACE ${ENTT_ROOT}/include/entt)
+
 # ---- ASSIMP ----
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "" FORCE)
 set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -62,6 +68,10 @@ add_library(GLib STATIC
     Renderer/Texture.cpp
     Renderer/Model.cpp
     Renderer/Mesh.cpp
+    Scene/Scene.cpp
+    Scene/Entity.cpp
+    Renderer/Camera.cpp
+    Scene/Systems.cpp
 )
 
 target_include_directories(GLib
@@ -72,6 +82,6 @@ target_include_directories(GLib
 )
 
 target_link_libraries(GLib
-    PUBLIC glm assimp
+    PUBLIC glm assimp entt
     PRIVATE glad glfw3 opengl32 stb_image
 )

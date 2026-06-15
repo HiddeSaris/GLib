@@ -5,22 +5,37 @@
 int main() {
     std::cout << "Starting...\n";
     GLib::Window::Init(700, 700, "Hello Window");
-    GLib::PerspectiveCamera camera = GLib::PerspectiveCamera(90, 0.01, 1000);
-    camera.SetPosition(glm::vec3(0.0f, 0.0f, 2.0f));
+    std::shared_ptr<GLib::Scene> scene = GLib::CreateScene();
+
+    GLib::Entity CameraEntity = scene->CreateEntity("Camera Entity");
+    CameraEntity.Add<GLib::CameraComponent>().m_Camera.SetPerspective(90, 0.01f, 1000.0f);
+    CameraEntity.Get<GLib::TransformComponent>().m_Translation = glm::vec3(0.0f, 0.0f, 2.0f);
+
 
     bool cursorEnabled = true;
-    GLib::Texture brickTexture = GLib::Texture("assets/textures/wall.jpg", GLib::TextureType::Diffuse);
-    GLib::Texture boxTexture = GLib::Texture("assets/textures/container2.png", GLib::TextureType::Diffuse);
-    GLib::Texture boxSpecTexture = GLib::Texture("assets/textures/container2_specular.png", GLib::TextureType::Specular);
+    // GLib::Texture brickTexture = GLib::Texture("assets/textures/wall.jpg", GLib::TextureType::Diffuse);
+    // GLib::Texture boxTexture = GLib::Texture("assets/textures/container2.png", GLib::TextureType::Diffuse);
+    // GLib::Texture boxSpecTexture = GLib::Texture("assets/textures/container2_specular.png", GLib::TextureType::Specular);
 
-    GLib::Model monkey("assets/models/Monkey/Monkey.obj");
-    GLib::Model backpack("assets/models/backpack/backpack.obj");
-    //GLib::Model house("assets/models/RevitHouse/RevitHouse.obj");
-    GLib::Model bunny("assets/models/bunny/bunny.obj");
-    GLib::Model beast("assets/models/beast/beast.obj");
+    auto entMonkey = scene->CreateEntity("Monkey");
+    entMonkey.Add<GLib::ModelRenderingComponent>("assets/models/Monkey/Monkey.obj");
+    entMonkey.Get<GLib::TransformComponent>().m_Translation = glm::vec3(3.0f, 0.0f, 3.0f);
+
+    auto entBackpack = scene->CreateEntity("Backpack");
+    entBackpack.Add<GLib::ModelRenderingComponent>("assets/models/backpack/backpack.obj");
+    entBackpack.Get<GLib::TransformComponent>().m_Translation = glm::vec3(-3.0f, 0.0f, -3.0f);
+
+    auto entBunny = scene->CreateEntity("Bunny");
+    entBunny.Add<GLib::ModelRenderingComponent>("assets/models/bunny/bunny.obj");
+    entBunny.Get<GLib::TransformComponent>().m_Scale = glm::vec3(5.0f, 5.0f, 5.0f);
+    
+    auto entBeast = scene->CreateEntity("Beast");
+    entBeast.Add<GLib::ModelRenderingComponent>("assets/models/beast/beast.obj");
+    entBeast.Get<GLib::TransformComponent>().m_Scale = glm::vec3(0.03f, 0.03f, 0.03f);
+    
+    scene->AddSystem<GLib::RenderSystem>();
 
     while (true) {
-        GLib::Render::BeginFrame(camera);
 
         if (GLib::Input::IsKeyDown(Key::Escape)){
             break;
@@ -37,50 +52,38 @@ int main() {
 
         float camSpeed = 0.05f;
 
+        glm::vec3 direction = CameraEntity.Get<GLib::TransformComponent>().GetRotation();
+        glm::vec3 right = CameraEntity.Get<GLib::TransformComponent>().GetRightVector();
+        glm::vec3 up = CameraEntity.Get<GLib::TransformComponent>().GetUpVector();
+
         if (GLib::Input::IsKeyDown(Key::W)){
-            camera.SetPosition(camera.GetPosition() + camSpeed * camera.GetDirection());
+            CameraEntity.Get<GLib::TransformComponent>().m_Translation += camSpeed * direction;
         }
         if (GLib::Input::IsKeyDown(Key::S)){
-            camera.SetPosition(camera.GetPosition() - camSpeed * camera.GetDirection());
+            CameraEntity.Get<GLib::TransformComponent>().m_Translation -= camSpeed * direction;
         }
         if (GLib::Input::IsKeyDown(Key::A)){
-            camera.SetPosition(camera.GetPosition() - camSpeed * camera.GetRightVector());
+            CameraEntity.Get<GLib::TransformComponent>().m_Translation -= camSpeed * right;
         }
         if (GLib::Input::IsKeyDown(Key::D)){
-            camera.SetPosition(camera.GetPosition() + camSpeed * camera.GetRightVector());
+            CameraEntity.Get<GLib::TransformComponent>().m_Translation += camSpeed * right;
         }
         if (GLib::Input::IsKeyDown(Key::Space)){
-            camera.SetPosition(camera.GetPosition() + camSpeed * camera.GetUpVector());
+            CameraEntity.Get<GLib::TransformComponent>().m_Translation += camSpeed * up;
         }
         if (GLib::Input::IsKeyDown(Key::LeftShift)){
-            camera.SetPosition(camera.GetPosition() - camSpeed * camera.GetUpVector());
+            CameraEntity.Get<GLib::TransformComponent>().m_Translation -= camSpeed * up;
         }
 
         if (!cursorEnabled){
             float deltaX = GLib::Input::MouseDeltaX;
             float deltaY = GLib::Input::MouseDeltaY;
             const float sensitivity = 0.2;
-            camera.SetYaw(camera.GetYaw() - deltaX * sensitivity);
-            camera.SetPitch(camera.GetPitch() - deltaY * sensitivity);
+            CameraEntity.Get<GLib::TransformComponent>().m_Yaw -= deltaX * sensitivity;
+            CameraEntity.Get<GLib::TransformComponent>().m_Pitch -= deltaY * sensitivity;
         }
 
-        boxSpecTexture.Bind(1);
-        GLib::Render::RenderQuad(glm::vec3(0.0f, 0.0f, 0.0f), boxTexture);
-
-        if (GLib::Input::IsKeyDown(Key::B)){
-            GLib::Render::RenderCube(glm::vec3(0.0f, 0.0f, 1.0f));
-        }
-
-        glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-        GLib::Render::Submit(monkey, transform);
-
-        transform = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(3.0f)), glm::vec3(-1.0f, -1.0f, -1.0f));
-        GLib::Render::Submit(backpack, transform);
-        GLib::Render::Submit(bunny, glm::scale(glm::mat4(1.0f), glm::vec3(5.0f)));
-        GLib::Render::Submit(beast, glm::scale(glm::mat4(1.0f), glm::vec3(0.1f)));
-
-        GLib::Render::EndFrame();
-        GLib::Window::Update();
+        scene->UpdateSystems();
     }
 
     GLib::Window::Close();

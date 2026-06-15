@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "Texture.h"
+#include "Window.h"
 
 #include <glad/glad.h>
 #include <glfw/glfw3.h>
@@ -13,6 +14,8 @@ namespace GLib {
 
     struct RenderData 
     {
+        std::shared_ptr<Scene> ActiveScene;
+
         std::shared_ptr<Shader> ColorShader;
         std::shared_ptr<Shader> TextureShader;
         
@@ -116,15 +119,21 @@ namespace GLib {
         s_Data.TextureShader->Bind();
     }
 
-    void Render::BeginFrame(Camera camera)
+    void Render::BeginFrame(Camera camera, glm::mat4 transform, glm::vec3 camPos)
+    {
+        BeginFrame(camera.GetProjection() * glm::inverse(transform), camPos);
+    }
+
+    void Render::BeginFrame(glm::mat4 viewProjection, glm::vec3 camPos)
     {
         Clear();
-        s_Data.ViewProjection = camera.GetViewProjection();
-        s_Data.CamPosition = camera.GetPosition();
+        s_Data.ViewProjection = viewProjection;
+        s_Data.CamPosition = camPos;
     }
 
     void Render::EndFrame()
     {
+        Window::Update();
     }
 
     void Render::SetClearColor(float r, float g, float b, float a) {
@@ -136,20 +145,25 @@ namespace GLib {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    void Render::RenderQuad(const glm::vec3& position) {
-        RenderQuad(position, *s_Data.WhiteTexture);
+    void Render::OnViewportResize(uint32_t width, uint32_t height)
+    {
+        s_Data.ActiveScene->OnViewportResize(width, height);
     }
 
-    void Render::RenderQuad(const glm::vec3& position, const Texture& texture) {
-        glm::mat4 trans = glm::mat4(1.0f);
-        trans = glm::rotate(trans, glm::radians((float)glfwGetTime() * 90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        trans = glm::scale(trans, glm::vec3(1.0f));
-        Submit(*s_Data.QuadVA, texture, trans);
-    }
+    // void Render::RenderQuad(const glm::vec3& position) {
+    //     RenderQuad(position, *s_Data.WhiteTexture);
+    // }
 
-    void Render::RenderCube(const glm::vec3& position) {
-        Submit(*s_Data.CubeVA, *s_Data.WhiteTexture, glm::translate(glm::mat4(1.0f), position));
-    }
+    // void Render::RenderQuad(const glm::vec3& position, const Texture& texture) {
+    //     glm::mat4 trans = glm::mat4(1.0f);
+    //     trans = glm::rotate(trans, glm::radians((float)glfwGetTime() * 90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    //     trans = glm::scale(trans, glm::vec3(1.0f));
+    //     Submit(*s_Data.QuadVA, texture, trans);
+    // }
+
+    // void Render::RenderCube(const glm::vec3& position) {
+    //     Submit(*s_Data.CubeVA, *s_Data.WhiteTexture, glm::translate(glm::mat4(1.0f), position));
+    // }
 
     void Render::Submit(const VertexArray& vertexArray, const Texture& texture, const glm::mat4& transformation, uint32_t indexCount)
     {
@@ -203,6 +217,13 @@ namespace GLib {
         for (std::shared_ptr<Mesh> mesh : model.GetMeshes()) {
             Submit(*mesh, transform);
         }
+    }
+
+    std::shared_ptr<Scene> CreateScene()
+    {
+        auto s = std::make_shared<Scene>();
+        s_Data.ActiveScene = s;
+        return s;
     }
 
 }
