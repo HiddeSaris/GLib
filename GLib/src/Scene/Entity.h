@@ -17,7 +17,7 @@ namespace GLib {
             if (Has<T>()){
                 std::cout << "Error [AddComponent]: Entity already has component!" << std::endl;
             }
-            return m_Scene->m_Registry.emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
+            return m_Scene->GetRegistry().emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
         }
 
         template<typename T>
@@ -25,12 +25,12 @@ namespace GLib {
             if (!Has<T>()){
                 std::cout << "Error [GetComponent]: Entity doesnt have component!" << std::endl;
             }
-            return m_Scene->m_Registry.get<T>(m_EntityHandle);
+            return m_Scene->GetRegistry().get<T>(m_EntityHandle);
         }
 
         template<typename T>
         bool Has(){
-            return m_Scene->m_Registry.all_of<T>(m_EntityHandle);
+            return m_Scene->GetRegistry().all_of<T>(m_EntityHandle);
         }
 
         template<typename T>

@@ -36,6 +36,7 @@ int main() {
     scene->AddSystem<GLib::RenderSystem>();
 
     while (true) {
+        double dt = scene->CalculateDeltaTime();
 
         if (GLib::Input::IsKeyDown(Key::Escape)){
             break;
@@ -50,7 +51,7 @@ int main() {
             cursorEnabled = !cursorEnabled;
         }
 
-        float camSpeed = 0.05f;
+        float camSpeed = 2.5f * dt;
 
         glm::vec3 direction = CameraEntity.Get<GLib::TransformComponent>().GetRotation();
         glm::vec3 right = CameraEntity.Get<GLib::TransformComponent>().GetRightVector();

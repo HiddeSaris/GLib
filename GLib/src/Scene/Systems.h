@@ -13,13 +13,13 @@ namespace GLib {
         System() = default;
         ~System() = default;
 
-        virtual void OnUpdate(Scene& scene) {}
+        virtual void OnUpdate(Scene& scene, double dt) {}
 
         virtual int GetPriority() const { return 0; } // lower = earlier
     };
 
     struct RenderSystem : public System {
-        void OnUpdate(Scene& scene) override {
+        void OnUpdate(Scene& scene, double dt) override {
             Entity camEntity;
             {    
                 auto view = scene.GetRegistry().view<CameraComponent>();

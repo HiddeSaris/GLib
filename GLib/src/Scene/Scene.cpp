@@ -6,7 +6,7 @@
 namespace GLib {
 
     Scene::Scene() {
-
+        m_LastFrameTime = std::chrono::steady_clock::now();
     }
 
     Scene::~Scene() {
@@ -21,10 +21,20 @@ namespace GLib {
         return entity;
     }
 
-    void Scene::UpdateSystems() {
+    void Scene::UpdateSystems()
+    {
         for (auto& system : m_Systems){
-            system->OnUpdate(*this);
+            system->OnUpdate(*this, m_DeltaTime);
         }
+    }
+
+    double Scene::CalculateDeltaTime()
+    {
+        std::chrono::steady_clock::time_point time = std::chrono::steady_clock::now();
+        std::chrono::duration<double> dt = time - m_LastFrameTime;
+        m_DeltaTime = dt.count();
+        m_LastFrameTime = time;
+        return m_DeltaTime;
     }
 
     void Scene::OnViewportResize(uint32_t width, uint32_t height) {
