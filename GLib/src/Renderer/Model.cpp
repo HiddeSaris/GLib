@@ -1,5 +1,6 @@
 #include "Model.h"
 
+#include <filesystem>
 
 namespace GLib {
 
@@ -20,9 +21,29 @@ namespace GLib {
     void Model::loadModel(std::string path)
     {
         std::cout << "Loading Model '" << path << "'...\n";
+
+        std::string binPath = path + ".assbin";
         Assimp::Importer import;
-        import.SetPropertyBool(AI_CONFIG_PP_FD_REMOVE, true);
-        const aiScene *scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
+        const aiScene* scene = nullptr;
+
+        if (std::filesystem::exists(binPath)) {
+            scene = import.ReadFile(binPath, 0);
+        }
+
+        if (!scene) {
+            scene = import.ReadFile(path, 
+                aiProcess_Triangulate | 
+                aiProcess_FlipUVs | 
+                aiProcess_GenNormals |
+                aiProcess_JoinIdenticalVertices |
+                aiProcess_OptimizeMeshes
+            );
+
+            if (scene) {
+                Assimp::Exporter exporter;
+                exporter.Export(scene, "assbin", binPath, 0);
+            }
+        }
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode){
             std::cout << "Error (Assimp) [Model::loadModel]: " << import.GetErrorString() << "\n";
