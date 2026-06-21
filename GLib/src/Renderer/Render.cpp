@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "Texture.h"
-#include "Window.h"
+#include "Window/Window.h"
 
 #include <glad/glad.h>
 #include <glfw/glfw3.h>
@@ -133,7 +133,9 @@ namespace GLib {
 
     void Render::EndFrame()
     {
+        Window::ImGuiEndFrame();
         Window::Update();
+        Window::ImGuiNewFrame();
     }
 
     void Render::SetClearColor(float r, float g, float b, float a) {

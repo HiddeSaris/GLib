@@ -34,6 +34,27 @@ set(STB_ROOT ${PROJECT_SOURCE_DIR}/GLib/vendor/stb_image)
 add_library(stb_image STATIC ${STB_ROOT}/include/stb_image.cpp)
 target_include_directories(stb_image PUBLIC ${STB_ROOT}/include)
 
+# ---- IMGUI ----
+set(IMGUI_ROOT ${PROJECT_SOURCE_DIR}/GLib/vendor/imgui)
+
+add_library(imgui STATIC 
+    ${IMGUI_ROOT}/imgui.cpp
+    ${IMGUI_ROOT}/imgui_demo.cpp
+    ${IMGUI_ROOT}/imgui_draw.cpp
+    ${IMGUI_ROOT}/imgui_tables.cpp
+    ${IMGUI_ROOT}/imgui_widgets.cpp
+    ${IMGUI_ROOT}/backends/imgui_impl_glfw.cpp
+    ${IMGUI_ROOT}/backends/imgui_impl_opengl3.cpp
+    ${IMGUI_ROOT}/misc/cpp/imgui_stdlib.cpp
+)
+
+target_include_directories(imgui PUBLIC ${IMGUI_ROOT} ${IMGUI_ROOT}/backends)
+
+target_link_libraries(imgui
+    PUBLIC glfw3
+    PRIVATE glad opengl32
+)
+
 # ---- ENTT ----
 set(ENTT_ROOT ${PROJECT_SOURCE_DIR}/GLib/vendor/entt)
 
@@ -57,10 +78,12 @@ set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE_SAVED})
 # ---- GLib library ----
 
 add_library(GLib STATIC
-    Window.cpp
-    Input.cpp
+    Window/Window.cpp
+    Window/Input.cpp
+    Window/ImGuiBuild.cpp
     Renderer/Buffer.cpp
     Renderer/BufferLayout.cpp
+    Renderer/Camera.cpp
     Renderer/PerspectiveCamera.cpp
     Renderer/Render.cpp
     Renderer/Shader.cpp
@@ -70,7 +93,6 @@ add_library(GLib STATIC
     Renderer/Mesh.cpp
     Scene/Scene.cpp
     Scene/Entity.cpp
-    Renderer/Camera.cpp
     Scene/Systems.cpp
 )
 
@@ -82,6 +104,6 @@ target_include_directories(GLib
 )
 
 target_link_libraries(GLib
-    PUBLIC glm assimp entt
-    PRIVATE glad glfw3 opengl32 stb_image
+    PUBLIC  glm assimp imgui entt
+    PRIVATE glad opengl32 glfw3 stb_image
 )

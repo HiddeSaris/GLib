@@ -1,10 +1,11 @@
 #include <iostream>
 #include <filesystem>
 #include "GLib.h"
+#include "imgui.h"
 
 int main() {
     std::cout << "Starting...\n";
-    GLib::Window::Init(700, 700, "Hello Window");
+    GLib::Window::Init(700, 700, "Hello Window", false);
     std::shared_ptr<GLib::Scene> scene = GLib::CreateScene();
 
     GLib::Entity CameraEntity = scene->CreateEntity("Camera Entity");
@@ -36,10 +37,19 @@ int main() {
     scene->AddSystem<GLib::RenderSystem>();
 
     while (true) {
-        double dt = scene->CalculateDeltaTime();
+        double dt = scene->GetDeltaTime();
+
+        ImGui::Begin("hello");
+
+        ImGui::End();
+
+        ImGui::ShowDemoWindow();
 
         if (GLib::Input::IsKeyDown(Key::Escape)){
             break;
+        }
+        if (GLib::Input::IsKeyDown(Key::F)){
+            GLib::Window::ToggleFullscreen();
         }
 
         if (GLib::Input::IsKeyPressed(Key::LeftAlt)){
@@ -85,6 +95,7 @@ int main() {
         }
 
         scene->UpdateSystems();
+
     }
 
     GLib::Window::Close();

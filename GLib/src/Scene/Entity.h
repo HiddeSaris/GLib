@@ -38,7 +38,7 @@ namespace GLib {
             if (!Has<T>()){
                 std::cout << "Error [RemoveComponent]: Entity doesnt have component!" << std::endl;
             }
-            m_Scene->m_Registry.remove<t>(m_EntityHandle);
+            m_Scene->m_Registry.remove<T>(m_EntityHandle);
         }
 
         operator bool() const { return m_EntityHandle != entt::null; }

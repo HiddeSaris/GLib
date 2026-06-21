@@ -2,6 +2,10 @@
 
 #include <GLFW/glfw3.h>
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 namespace GLib {
 
     GLFWwindow* Input::s_Window = nullptr;
@@ -41,11 +45,15 @@ namespace GLib {
         s_PreviousKeys         = s_CurrentKeys;
         s_PreviousMouseButtons = s_CurrentMouseButtons;
 
+        ImGuiIO& io = ImGui::GetIO();
+        
         for (int i = 0; i < GLFW_KEY_LAST + 1; i++) {
-            s_CurrentKeys[i] = glfwGetKey(s_Window, i) == GLFW_PRESS;
+            if (!io.WantCaptureKeyboard)
+                s_CurrentKeys[i] = glfwGetKey(s_Window, i) == GLFW_PRESS;
         }
         for (int i = 0; i < GLFW_MOUSE_BUTTON_LAST + 1; i++) {
-            s_CurrentMouseButtons[i] = glfwGetMouseButton(s_Window, i) == GLFW_PRESS;
+            if (!io.WantCaptureMouse)
+                s_CurrentMouseButtons[i] = glfwGetMouseButton(s_Window, i) == GLFW_PRESS;
         }
     }
 

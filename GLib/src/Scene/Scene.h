@@ -30,18 +30,20 @@ namespace GLib {
 
         void UpdateSystems();
 
-        double CalculateDeltaTime();
         void OnViewportResize(uint32_t width, uint32_t height);
-        void Render();
-        void Render(Entity cameraEntity);
+        //void Render();
+        //void Render(Entity cameraEntity);
 
         entt::registry& GetRegistry() { return m_Registry; }
+        double GetDeltaTime() const { return m_DeltaTime; }
 
     private:
         entt::registry m_Registry;
         std::vector<std::unique_ptr<System>> m_Systems;
         std::chrono::steady_clock::time_point m_LastFrameTime;
         double m_DeltaTime;
+    private:
+        double CalculateDeltaTime();
     };
 
 }

@@ -67,7 +67,7 @@ namespace GLib {
     {
         Model m_Model;
 
-        ModelRenderingComponent() = default;
+        //ModelRenderingComponent() = default;
         ModelRenderingComponent(const ModelRenderingComponent&) = default;
         ModelRenderingComponent(const Model& model)
             : m_Model(model) {}

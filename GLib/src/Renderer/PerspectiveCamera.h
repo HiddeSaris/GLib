@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Camera.h"
-#include "Window.h"
+#include "Window/Window.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
