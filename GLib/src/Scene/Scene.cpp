@@ -12,19 +12,22 @@ namespace GLib {
 
     Scene::Scene() {
         m_LastFrameTime = std::chrono::steady_clock::now();
-
+        m_NumEntities = 0;
         Window::ImGuiNewFrame();
     }
 
     Scene::~Scene() {
-        
+        for (auto& system : m_Systems){
+            system->OnCleanup(*this);
+        }
     }
 
     Entity Scene::CreateEntity(const std::string& name) {
+        m_NumEntities++;
+        
         Entity entity(m_Registry.create(), this);
         entity.Add<TransformComponent>();
-        auto& tag = entity.Add<TagComponent>();
-        tag.m_Tag = name.empty() ? "Entity" : name;
+        auto& tag = entity.Add<TagComponent>(name.empty() ? "Entity" : name);
         return entity;
     }
 
@@ -48,46 +51,6 @@ namespace GLib {
         }
     }
 
-    // void Scene::Render()
-    // {
-    //     Entity camEntity;
-    //     {    
-    //         auto view = m_Registry.view<CameraComponent>();
-    //         for (auto entity : view){
-    //             auto& camera = view.get<CameraComponent>(entity);
-    //             if (camera.m_Primary){
-    //                 camEntity = Entity(entity, this);
-    //                 break;
-    //             }
-    //         }
-    //     }
-
-    //     if (camEntity){
-    //         Render(camEntity);
-    //     }
-    // }
-
-    // void Scene::Render(Entity cameraEntity)
-    // {
-    //     if (!cameraEntity.Has<CameraComponent>() || !cameraEntity.Has<TransformComponent>()){
-    //         std::cout << "Error [Scene::Render]: Camera entity doesnt have the required components! (Camera & Transform)" << std::endl;
-    //         return;
-    //     }
-
-    //     auto camera = cameraEntity.Get<CameraComponent>().m_Camera;
-    //     auto camTransform = cameraEntity.Get<TransformComponent>();
-
-    //     Render::BeginFrame(camera, camTransform.GetTransform(), camTransform.m_Translation);
-
-    //     auto group = m_Registry.group<ModelRenderingComponent>(entt::get<TransformComponent>);
-    //     for (auto entity : group){
-    //         auto& [transform, model] = group.get<TransformComponent, ModelRenderingComponent>(entity);
-    //         Render::Submit(model.m_Model, transform.GetTransform());
-    //     }
-
-    //     Render::EndFrame();
-    // }
-    
     double Scene::CalculateDeltaTime()
     {
         std::chrono::steady_clock::time_point time = std::chrono::steady_clock::now();

@@ -61,6 +61,25 @@ set(ENTT_ROOT ${PROJECT_SOURCE_DIR}/GLib/vendor/entt)
 add_library(entt INTERFACE)
 target_include_directories(entt INTERFACE ${ENTT_ROOT}/include/entt)
 
+# ---- BULLET ----
+set(BULLET_ROOT ${PROJECT_SOURCE_DIR}/GLib/vendor/bullet)
+
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
+set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
+set(BUILD_BULLET3         OFF CACHE BOOL "" FORCE)
+set(BUILD_CLSOCKET        OFF CACHE BOOL "" FORCE)
+set(BUILD_CPU_DEMOS       OFF CACHE BOOL "" FORCE)
+set(BUILD_ENET            OFF CACHE BOOL "" FORCE)
+set(BUILD_EXTRAS          OFF CACHE BOOL "" FORCE)
+set(BUILD_OPENGL3_DEMOS   OFF CACHE BOOL "" FORCE)
+set(BUILD_PYBULLET        OFF CACHE BOOL "" FORCE)
+set(BUILD_UNIT_TESTS      OFF CACHE BOOL "" FORCE)
+set(USE_GRAPHICAL_BENCHMARK OFF CACHE BOOL "" FORCE)
+set(USE_GLUT              OFF CACHE BOOL "" FORCE)
+
+add_subdirectory(${BULLET_ROOT} ${CMAKE_BINARY_DIR}/bullet)
+
 # ---- ASSIMP ----
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "" FORCE)
 set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -94,6 +113,7 @@ add_library(GLib STATIC
     Scene/Scene.cpp
     Scene/Entity.cpp
     Scene/Systems.cpp
+    Physics/Bullet.cpp
 )
 
 target_include_directories(GLib
@@ -101,9 +121,10 @@ target_include_directories(GLib
         ${PROJECT_SOURCE_DIR}/GLib/include
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${GLM_ROOT}
+        ${BULLET_ROOT}/src
 )
 
 target_link_libraries(GLib
-    PUBLIC  glm assimp imgui entt
+    PUBLIC  glm assimp imgui entt LinearMath BulletCollision BulletDynamics
     PRIVATE glad opengl32 glfw3 stb_image
 )

@@ -26,9 +26,8 @@ namespace GLib {
 
         static void OnViewportResize(uint32_t width, uint32_t height);
 
-        // static void RenderQuad(const glm::vec3& position);
-        // static void RenderQuad(const glm::vec3& position, const Texture& texture);
-        // static void RenderCube(const glm::vec3& position);
+        static void DrawLine(const glm::vec3& start, const glm::vec3& end, const glm::vec3& color = glm::vec3(1.0f));
+        static void DrawLineFlush();
 
         static void Submit(const VertexArray& vertexArray, const Texture& texture, const glm::mat4& transformation, uint32_t indexCount = 0);
         static void Submit(const Mesh& mesh, const glm::mat4& transform);

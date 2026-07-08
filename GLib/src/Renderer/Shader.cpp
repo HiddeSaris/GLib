@@ -118,9 +118,8 @@ namespace GLib {
 
                 glDeleteShader(shader);
 
-                std::cout << infoLog.data() << "\nShader compilation failure!";
-                //return;
-                exit(1);
+                std::cout << infoLog.data() << "Shader compilation failure! '" << source << "'\n";
+                return;
             }
 
             glAttachShader(program, shader);

@@ -20,7 +20,7 @@ namespace GLib {
 
     void Model::loadModel(std::string path)
     {
-        std::cout << "Loading Model '" << path << "'...\n";
+        std::cout << "Loading Model '" << path << "'... ";
 
         std::string binPath = path + ".assbin";
         Assimp::Importer import;
@@ -52,6 +52,8 @@ namespace GLib {
         m_Directory = path.substr(0, path.find_last_of('/'));
 
         processNode(scene->mRootNode, scene);
+
+        std::cout << "Done!" << "\n";
     }
 
     void Model::processNode(aiNode* node, const aiScene* scene)
