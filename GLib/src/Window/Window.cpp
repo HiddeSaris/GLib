@@ -36,7 +36,7 @@ namespace GLib {
         InitGLFW(start_fullscreen);
         InitOpenGL();
 
-        InitImGui();
+        //InitImGui();
     }
 
     void Window::Close()
@@ -47,7 +47,7 @@ namespace GLib {
         if (s_GLFWWindowCount == 0){
             glfwTerminate();
 
-            ImGuiEndFrame();
+            //ImGuiEndFrame();
             DestructImGui();
         }
     }
@@ -166,25 +166,25 @@ namespace GLib {
         Render::Init();
     }
 
-    void Window::InitImGui()
-    {
-        // Setup Dear ImGui context
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        ImGuiIO& io = ImGui::GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-        //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-        //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
-		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
+    // void Window::InitImGui()
+    // {
+    //     // Setup Dear ImGui context
+    //     IMGUI_CHECKVERSION();
+    //     ImGui::CreateContext();
+    //     ImGuiIO& io = ImGui::GetIO();
+    //     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    //     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+    //     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    //     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+    //     //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
+	// 	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
 
-        // ImGuiViewport* viewport = ImGui::GetWindowViewport();
-        // viewport->Flags |= ImGuiViewportFlags_TopMost;
-        // Setup Platform/Renderer backends
-        ImGui_ImplGlfw_InitForOpenGL(s_Window, true);
-        ImGui_ImplOpenGL3_Init();
-    }
+    //     // ImGuiViewport* viewport = ImGui::GetWindowViewport();
+    //     // viewport->Flags |= ImGuiViewportFlags_TopMost;
+    //     // Setup Platform/Renderer backends
+    //     ImGui_ImplGlfw_InitForOpenGL(s_Window, true);
+    //     ImGui_ImplOpenGL3_Init();
+    // }
 
     void Window::DestructImGui()
     {
@@ -247,29 +247,29 @@ namespace GLib {
         return glfwGetTime();
     }
 
-    void Window::ImGuiNewFrame()
-    {
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-    }
+    // void Window::ImGuiNewFrame()
+    // {
+    //     ImGui_ImplOpenGL3_NewFrame();
+    //     ImGui_ImplGlfw_NewFrame();
+    //     ImGui::NewFrame();
+    // }
 
-    void Window::ImGuiEndFrame()
-    {
-        ImGuiIO& io = ImGui::GetIO();
-        io.DisplaySize = ImVec2((float)s_Width, (float)s_Height);
+    // void Window::ImGuiEndFrame()
+    // {
+    //     ImGuiIO& io = ImGui::GetIO();
+    //     io.DisplaySize = ImVec2((float)s_Width, (float)s_Height);
 
-        // Rendering
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    //     // Rendering
+    //     ImGui::Render();
+    //     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-            GLFWwindow* backup_current_context = glfwGetCurrentContext();
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-            glfwMakeContextCurrent(backup_current_context);
-        }
-    }
+    //     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+    //         GLFWwindow* backup_current_context = glfwGetCurrentContext();
+    //         ImGui::UpdatePlatformWindows();
+    //         ImGui::RenderPlatformWindowsDefault();
+    //         glfwMakeContextCurrent(backup_current_context);
+    //     }
+    // }
 
     bool Window::IsFullscreen()
     {

@@ -12,6 +12,12 @@ namespace GLib {
         VertexBuffer(float* vertices, size_t size);
         ~VertexBuffer();
 
+        VertexBuffer(const VertexBuffer&) = delete;
+        VertexBuffer& operator=(const VertexBuffer&) = delete;
+
+        VertexBuffer(VertexBuffer&& other) noexcept;
+        VertexBuffer& operator=(VertexBuffer&& other) noexcept;
+
         void Bind();
         void Unbind();
 
@@ -30,6 +36,12 @@ namespace GLib {
     public:
         IndexBuffer(uint32_t* indices, uint32_t count);
         ~IndexBuffer();
+
+        IndexBuffer(const IndexBuffer&) = delete;
+        IndexBuffer& operator=(const IndexBuffer&) = delete;
+
+        IndexBuffer(IndexBuffer&& other) noexcept;
+        IndexBuffer& operator=(IndexBuffer&& other) noexcept;
 
         void Bind();
         void Unbind();

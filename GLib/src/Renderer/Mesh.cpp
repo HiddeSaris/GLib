@@ -29,6 +29,14 @@ namespace GLib {
         m_IndexBuffer = std::make_shared<IndexBuffer>(indices, index_count);
         m_VertexArray.SetIndexBuffer(m_IndexBuffer);
         m_VertexArray.Unbind();
+
+        for (auto& tex : m_Textures){
+            if (tex->IsTransparent()) {
+                m_IsTransparent = true;
+                break;
+            }
+        }
+        
     }
 
     void Mesh::Bind(Shader &shader) const
@@ -54,15 +62,5 @@ namespace GLib {
 
         m_VertexArray.Bind();
     }
-
-    // void Mesh::Draw(Shader &shader, const glm::vec3& position) const
-    // {
-    //     Bind(shader);
-    //     glm::mat4 transform = glm::translate(glm::mat4(1.0f), position);
-    //     shader.UploadUniformMat4("u_Transform", transform);
-    //     glDrawElements(GL_TRIANGLES, m_VertexArray.GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0);
-    //     glBindVertexArray(0);
-    //     glActiveTexture(GL_TEXTURE0);
-    // }
 
 }

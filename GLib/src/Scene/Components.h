@@ -92,21 +92,32 @@ namespace GLib {
         }
     };
 
-    struct ModelRenderingComponent
+    struct ModelComponent
     {
         Model m_Model;
 
-        ModelRenderingComponent(const ModelRenderingComponent&) = default;
-        ModelRenderingComponent(const Model& model)
+        ModelComponent(const ModelComponent&) = default;
+        ModelComponent(const Model& model)
             : m_Model(model) {}
-        ModelRenderingComponent(const std::string& filepath)
+        ModelComponent(const std::string& filepath)
             : m_Model(filepath) {}
+    };
+
+    struct VertexArrayComponent
+    {
+        std::shared_ptr<VertexArray> m_VertexArray;
+        std::shared_ptr<Texture> m_Texture;
+
+        VertexArrayComponent(const VertexArrayComponent&) = default;
+        VertexArrayComponent(std::shared_ptr<VertexArray> vertexArray)
+            : m_VertexArray(std::move(vertexArray)), m_Texture(std::make_shared<Texture>(TextureSpecification())) {}
+        VertexArrayComponent(std::shared_ptr<VertexArray> vertexArray, std::shared_ptr<Texture> texture)
+            : m_VertexArray(std::move(vertexArray)), m_Texture(std::move(texture)) {}
     };
 
     struct CameraComponent 
     {
         Camera m_Camera;
-        bool m_Primary = true;
         bool m_FixedAspecRatio = false;
 
         CameraComponent() = default;

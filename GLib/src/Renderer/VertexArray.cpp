@@ -14,6 +14,33 @@ namespace GLib {
         glDeleteVertexArrays(1, &m_RenderID);
     }
 
+    VertexArray::VertexArray(VertexArray&& other) noexcept
+        : m_RenderID(other.m_RenderID),
+          m_VertexBufferIndex(other.m_VertexBufferIndex),
+          m_VertexBuffers(std::move(other.m_VertexBuffers)),
+          m_IndexBuffer(std::move(other.m_IndexBuffer))
+    {
+        other.m_RenderID = 0;
+        other.m_VertexBufferIndex = 0;
+    }
+
+    VertexArray& VertexArray::operator=(VertexArray&& other) noexcept
+    {
+        if (this != &other) {
+            if (m_RenderID != 0)
+                glDeleteVertexArrays(1, &m_RenderID);
+
+            m_RenderID = other.m_RenderID;
+            m_VertexBufferIndex = other.m_VertexBufferIndex;
+            m_VertexBuffers = std::move(other.m_VertexBuffers);
+            m_IndexBuffer = std::move(other.m_IndexBuffer);
+
+            other.m_RenderID = 0;
+            other.m_VertexBufferIndex = 0;
+        }
+        return *this;
+    }
+
     void VertexArray::Bind() const
     {
         glBindVertexArray(m_RenderID);

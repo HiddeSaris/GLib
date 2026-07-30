@@ -26,6 +26,25 @@ namespace GLib {
         glDeleteBuffers(1, &m_RendererID);
     }
 
+    VertexBuffer::VertexBuffer(VertexBuffer&& other) noexcept
+        : m_RendererID(other.m_RendererID), m_Layout(std::move(other.m_Layout))
+    {
+        other.m_RendererID = 0;
+    }
+
+    VertexBuffer& VertexBuffer::operator=(VertexBuffer&& other) noexcept
+    {
+        if (this != &other) {
+            if (m_RendererID != 0)
+                glDeleteBuffers(1, &m_RendererID);
+
+            m_RendererID = other.m_RendererID;
+            m_Layout = std::move(other.m_Layout);
+            other.m_RendererID = 0;
+        }
+        return *this;
+    }
+
     void VertexBuffer::Bind()
     {
         glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
@@ -59,6 +78,27 @@ namespace GLib {
     IndexBuffer::~IndexBuffer()
     {
         glDeleteBuffers(1, &m_RendererID);
+    }
+
+    IndexBuffer::IndexBuffer(IndexBuffer&& other) noexcept
+        : m_RendererID(other.m_RendererID), m_Count(other.m_Count)
+    {
+        other.m_RendererID = 0;
+        other.m_Count = 0;
+    }
+
+    IndexBuffer& IndexBuffer::operator=(IndexBuffer&& other) noexcept
+    {
+        if (this != &other) {
+            if (m_RendererID != 0)
+                glDeleteBuffers(1, &m_RendererID);
+
+            m_RendererID = other.m_RendererID;
+            m_Count = other.m_Count;
+            other.m_RendererID = 0;
+            other.m_Count = 0;
+        }
+        return *this;
     }
 
     void IndexBuffer::Bind()

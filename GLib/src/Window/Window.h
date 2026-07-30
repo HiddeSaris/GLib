@@ -21,11 +21,13 @@ namespace GLib {
 
         static double GetTime();
 
-        static void ImGuiNewFrame();
-        static void ImGuiEndFrame();
+        // static void ImGuiNewFrame();
+        // static void ImGuiEndFrame();
         
         static int GetWidth() { return s_Width; }
         static int GetHeight() { return s_Height; }
+        static int GetViewportWidth() { return s_ViewportWidth; }
+        static int GetViewportHeight() { return s_ViewportHeight; }
         static std::string GetTitle() { return s_Title; }
         static GLFWwindow* GetWindowID() { return s_Window; }
         static bool IsFullscreen();
@@ -47,7 +49,7 @@ namespace GLib {
         static void CreateWindow(bool fullscreen);
         static void InitGLFW(bool start_fullscreen);
         static void InitOpenGL();
-        static void InitImGui();
+        // static void InitImGui();
         static void DestructImGui();
         static void FramebufferSizeCallback(GLFWwindow* window, int width, int height); 
         static void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset); 

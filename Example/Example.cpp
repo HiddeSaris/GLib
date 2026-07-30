@@ -25,6 +25,7 @@ int main() {
     // GLib::Texture brickTexture = GLib::Texture("assets/textures/wall.jpg", GLib::TextureType::Diffuse);
     // GLib::Texture boxTexture = GLib::Texture("assets/textures/container2.png", GLib::TextureType::Diffuse);
     // GLib::Texture boxSpecTexture = GLib::Texture("assets/textures/container2_specular.png", GLib::TextureType::Specular);
+    auto transparentTex = std::make_shared<GLib::Texture>("assets/textures/blending_transparent_window.png", GLib::TextureType::Diffuse);
 
     // auto entMonkey = scene->CreateEntity("Monkey");
     // entMonkey.Add<GLib::ModelRenderingComponent>("assets/models/Monkey/Monkey.obj");
@@ -43,39 +44,40 @@ int main() {
     // entBeast.Get<GLib::TransformComponent>().m_Scale = glm::vec3(0.03f, 0.03f, 0.03f);
     
     auto entSponza = scene->CreateEntity("Sponza");
-    entSponza.Add<GLib::ModelRenderingComponent>("assets/models/sponza/sponza.obj");
+    entSponza.Add<GLib::ModelComponent>("assets/models/sponza/sponza.obj");
     entSponza.Get<GLib::TransformComponent>().m_Translation = glm::vec3(0.0f, 0.0f, 0.0f);
     entSponza.Get<GLib::TransformComponent>().SetYawDeg(90.0f);
     
     auto entCube = scene->CreateEntity("Cube");
-    entCube.Add<GLib::ModelRenderingComponent>("assets/models/cube/cube.obj");
+    entCube.Add<GLib::ModelComponent>("assets/models/cube/cube.obj");
     entCube.Get<GLib::TransformComponent>().m_Translation = glm::vec3(0.0f, -0.1f, 0.0f);
     entCube.Get<GLib::TransformComponent>().m_Scale = glm::vec3(9.0f, 0.1f, 15.0f);
     //entCube.Get<GLib::TransformComponent>().m_Pitch = 0.0f;
     entCube.Add<GLib::RigidBodyComponent>(new btBoxShape(btVector3(1, 1, 1)), 0);
     
     auto entSphere = scene->CreateEntity("Sphere");
-    entSphere.Add<GLib::ModelRenderingComponent>("assets/models/sphere/sphere.obj");
+    entSphere.Add<GLib::ModelComponent>("assets/models/sphere/sphere.obj");
     entSphere.Add<GLib::RigidBodyComponent>(new btSphereShape(1), 1);
     entSphere.Get<GLib::TransformComponent>().m_Translation = glm::vec3(0.0f, 10.0f, 0.0f);
+
+    auto entQuad = scene->CreateEntity("Quad");
+    entQuad.Add<GLib::VertexArrayComponent>(GLib::Render::GetQuadVertexArray(), transparentTex);
+    entQuad.Get<GLib::TransformComponent>().m_Translation = glm::vec3(1.0f);
+
+    
+    GLib::FrameBuffer framebuffer = GLib::FrameBuffer(800, 600);
+    framebuffer.Bind();
+        
 
     bool running = true;
     float camSpeed = default_cam_speed;
     bool moving = false;
     int entities = 3;
     while (running) {
-        float dt = scene->GetDeltaTime();
+        GLib::Render::BeginFrame();
+        //ImGui::DockSpaceOverViewport();
 
-        ImGui::Begin("Physics");
-
-        if (ImGui::DragFloat3("sphere pos", glm::value_ptr(entSphere.Get<GLib::TransformComponent>().m_Translation)))
-            entSphere.Get<GLib::RigidBodyComponent>().Activate();
-        btVector3 vel = entSphere.Get<GLib::RigidBodyComponent>().m_Body->getVelocityInLocalPoint(btVector3(0.0f, 0.0f, 0.0f));
-        ImGui::Text("Sphere vel: %f, %f, %f", vel.getX(), vel.getY(), vel.getZ());
-        ImGui::Text("num entities: %i", scene->GetNumEntities());
-        ImGui::Text("FPS: %f", 1/dt);
-        
-        ImGui::End();
+        float dt = GLib::Render::GetDeltaTime();
 
         if (GLib::Input::IsKeyDown(Key::Escape)){
             running = false;
@@ -86,7 +88,7 @@ int main() {
         if (GLib::Input::IsKeyDown(Key::B)){
             entities++;
             auto ent = scene->CreateEntity("Sphere");
-            ent.Add<GLib::ModelRenderingComponent>("assets/models/sphere/sphere.obj");
+            ent.Add<GLib::ModelComponent>("assets/models/sphere/sphere.obj");
             ent.Add<GLib::RigidBodyComponent>(new btSphereShape(1), 1);
             ent.Get<GLib::TransformComponent>().m_Translation = glm::vec3(0.0f, 15.0f, 0.0f);
         }
@@ -108,6 +110,7 @@ int main() {
         if (GLib::Input::IsKeyDown(Key::W)){
             CameraEntity.Get<GLib::TransformComponent>().m_Translation += camSpeed * dt * direction;
             moving = true;
+            std::cout << "moving!\n";
         }
         if (GLib::Input::IsKeyDown(Key::S)){
             CameraEntity.Get<GLib::TransformComponent>().m_Translation -= camSpeed * dt * direction;
@@ -146,8 +149,33 @@ int main() {
             trans.RotateDeg(trans.GetRightVector(), -deltaY * sensitivity);
         }
 
+        ImGui::Begin("game window", nullptr, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::BeginChild("Game Render");
+
+            ImVec2 wsize = ImGui::GetWindowSize();
+            ImGui::Image((ImTextureID)framebuffer.GetColorAttachmentID(), wsize, ImVec2(0, 1), ImVec2(1, 0));
+
+            ImGui::EndChild();
+        ImGui::End();
+
+        ImGui::Begin("Physics", nullptr, ImGuiWindowFlags_NoFocusOnAppearing);
+
+            if (ImGui::DragFloat3("sphere pos", glm::value_ptr(entSphere.Get<GLib::TransformComponent>().m_Translation)))
+                entSphere.Get<GLib::RigidBodyComponent>().Activate();
+            btVector3 vel = entSphere.Get<GLib::RigidBodyComponent>().m_Body->getVelocityInLocalPoint(btVector3(0.0f, 0.0f, 0.0f));
+            ImGui::Text("Sphere vel: %f, %f, %f", vel.getX(), vel.getY(), vel.getZ());
+            ImGui::Text("num entities: %i", scene->GetNumEntities());
+            ImGui::Text("FPS: %f", 1/dt);
+        
+        ImGui::End();
+
+
         scene->UpdateSystems();
 
+        framebuffer.Unbind();
+        GLib::Render::EndFrame();
+        GLib::Render::Clear();
+        framebuffer.Bind();
     }
 
     GLib::Window::Close();

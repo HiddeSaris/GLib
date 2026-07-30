@@ -24,6 +24,7 @@ namespace GLib {
         const std::vector<std::shared_ptr<Texture>>& GetTextures() const { return m_Textures; }
         const BufferLayout& GetLayout() const { return m_Layout; }
 
+        bool IsTransparent() const { return m_IsTransparent; }
     private:
         BufferLayout m_Layout = BufferLayout({
             { "a_Position", GL_FLOAT, 3 },
@@ -35,6 +36,7 @@ namespace GLib {
         std::shared_ptr<VertexBuffer> m_VertexBuffer; 
         std::shared_ptr<IndexBuffer> m_IndexBuffer;
         std::vector<std::shared_ptr<Texture>> m_Textures;
+        bool m_IsTransparent = false;
     };
 
 }

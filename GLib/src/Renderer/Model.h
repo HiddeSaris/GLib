@@ -25,10 +25,13 @@ namespace GLib
         //void Draw(Shader& shader, const glm::vec3& position);
 
         const std::vector<std::shared_ptr<Mesh>>& GetMeshes() const { return m_Meshes; }
+
+        bool IsTransparent() const { return m_IsTransparent; }
     private:
         std::vector<std::shared_ptr<Mesh>> m_Meshes;
         std::vector<std::shared_ptr<Texture>> m_TexturesLoaded;
         std::string m_Directory;
+        bool m_IsTransparent = false;
 
         void loadModel(std::string path);
         void processNode(aiNode* node, const aiScene* scene);

@@ -14,7 +14,7 @@ namespace GLib {
     {
         glGenTextures(1, &m_RendererID);
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
-
+        
         glTexImage2D(
             GL_TEXTURE_2D,
             0,
@@ -32,13 +32,18 @@ namespace GLib {
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        if (m_Width == 1 && m_Height == 1){
+            uint32_t white = 0xffffffff;
+            SetData(&white, sizeof(uint32_t));
+        }
     }
 
     Texture::Texture(const std::string &path, TextureType type)
         : m_Path(path), m_Type(type)
     {
         int width, height, channels;
-        stbi_set_flip_vertically_on_load(1);
+        stbi_set_flip_vertically_on_load(0);
         stbi_uc* data = nullptr;
         data = stbi_load(path.c_str(), &width, &height, &channels, 0);
 
@@ -66,6 +71,16 @@ namespace GLib {
                 exit(1);
             }
 
+            if (channels == 4 && type == TextureType::Diffuse || type == TextureType::Albedo) {
+                for (int i = 0; i < width * height; i++) {
+                    uint8_t alpha = data[i * 4 + 3];
+                    if (alpha < 250) {  // small threshold avoids false positives from lossy compression artifacts
+                        m_IsTransparent = true;
+                        break;
+                    }
+                }
+            }
+
             glGenTextures(1, &m_RendererID);
             glBindTexture(GL_TEXTURE_2D, m_RendererID);
             glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, m_Width, m_Height, 0, dataFormat, GL_UNSIGNED_BYTE, nullptr);
@@ -88,7 +103,41 @@ namespace GLib {
 
     Texture::~Texture()
     {
-        glDeleteTextures(1, &m_RendererID);
+        if (m_RendererID != 0)
+            glDeleteTextures(1, &m_RendererID);
+    }
+
+    Texture::Texture(Texture&& other) noexcept
+        : m_Specification(other.m_Specification), m_Type(other.m_Type),
+          m_Path(std::move(other.m_Path)), m_IsLoaded(other.m_IsLoaded),
+          m_Width(other.m_Width), m_Height(other.m_Height),
+          m_RendererID(other.m_RendererID),
+          m_InternalFormat(other.m_InternalFormat), m_DataFormat(other.m_DataFormat)
+    {
+        other.m_RendererID = 0;
+        other.m_IsLoaded = false;
+    }
+
+    Texture& Texture::operator=(Texture&& other) noexcept
+    {
+        if (this != &other) {
+            if (m_RendererID != 0)
+                glDeleteTextures(1, &m_RendererID);
+
+            m_Specification = other.m_Specification;
+            m_Type = other.m_Type;
+            m_Path = std::move(other.m_Path);
+            m_IsLoaded = other.m_IsLoaded;
+            m_Width = other.m_Width;
+            m_Height = other.m_Height;
+            m_RendererID = other.m_RendererID;
+            m_InternalFormat = other.m_InternalFormat;
+            m_DataFormat = other.m_DataFormat;
+
+            other.m_RendererID = 0;
+            other.m_IsLoaded = false;
+        }
+        return *this;
     }
 
     void Texture::SetData(void *data, uint32_t size)
@@ -99,8 +148,13 @@ namespace GLib {
             exit(1);
         }
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Width, m_Height, m_DataFormat, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Width, m_Height, m_DataFormat, GL_UNSIGNED_BYTE, data);
     }
+
+    // void Texture::AttachToFramebuffer()
+    // {
+    //     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_RendererID, 0);
+    // }
 
     void Texture::Bind(uint32_t slot) const
     {

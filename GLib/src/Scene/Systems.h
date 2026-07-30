@@ -23,45 +23,11 @@ namespace GLib {
     };
 
     struct RenderSystem : public System {
-        void OnInit(Scene& scene) override {
+        void OnInit(Scene& scene) override;
 
-        }
+        void OnUpdate(Scene& scene, double dt) override;
 
-        void OnUpdate(Scene& scene, double dt) override {
-            Entity camEntity;
-            {    
-                auto view = scene.GetRegistry().view<CameraComponent>();
-                for (auto entity : view){
-                    auto& camera = view.get<CameraComponent>(entity);
-                    if (camera.m_Primary){
-                        camEntity = Entity(entity, &scene);
-                        break;
-                    }
-                }
-            }
-
-            if (camEntity){
-                Camera camera = camEntity.Get<CameraComponent>().m_Camera;
-                TransformComponent camTransform = camEntity.Get<TransformComponent>();
-
-                Render::BeginFrame(camera, camTransform.GetTransform(), camTransform.m_Translation);
-
-                auto group = scene.GetRegistry().group<ModelRenderingComponent>(entt::get<TransformComponent>);
-                for (auto entity : group){
-                    auto& [transform, model] = group.get<TransformComponent, ModelRenderingComponent>(entity);
-                    Render::Submit(model.m_Model, transform.GetTransform());
-                }
-
-                Render::DrawLineFlush();
-
-                Render::EndFrame();
-            }
-
-        }
-
-        void OnCleanup(Scene& scene) override {
-
-        }
+        void OnCleanup(Scene& scene) override;
 
         int GetPriority() const override {
             return INT_MAX - 100;

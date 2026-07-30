@@ -9,7 +9,7 @@ namespace GLib {
     class Entity {
     public:
         Entity() = default;
-        Entity(entt::entity handle, Scene* scene);
+        Entity(entt::entity handle, std::shared_ptr<Scene> scene);
         Entity(const Entity& other) = default;
         
         template<typename T, typename... Args>
@@ -41,10 +41,12 @@ namespace GLib {
             m_Scene->m_Registry.remove<T>(m_EntityHandle);
         }
 
+        entt::entity GetHandle() const { return m_EntityHandle; }
+
         operator bool() const { return m_EntityHandle != entt::null; }
     private:
         entt::entity m_EntityHandle{ entt::null };
-        Scene* m_Scene = nullptr;
+        std::shared_ptr<Scene> m_Scene;
     };
 
 }

@@ -38,19 +38,24 @@ namespace GLib {
         entt::registry& GetRegistry() { return m_Registry; }
         int GetNumEntities() const { return m_NumEntities; }
         glm::vec3& GetGravity() { return m_Gravity; }
+        Entity GetPrimaryCamera() const;
         double GetDeltaTime() const { return m_DeltaTime; }
 
         void SetGravity(glm::vec3 gravity) { m_Gravity = gravity; }
+
+        void SetPrimaryCamera(Entity cam);
 
     private:
         entt::registry m_Registry;
         std::vector<std::unique_ptr<System>> m_Systems;
         int m_NumEntities;
+        entt::entity m_PrimaryCamera { entt::null };
         glm::vec3 m_Gravity{0.0f, -9.81f, 0.0f};
         std::chrono::steady_clock::time_point m_LastFrameTime;
         double m_DeltaTime;
     private:
         double CalculateDeltaTime();
+        void OnCameraCreated(entt::registry& registry, entt::entity entity);
     };
 
 }

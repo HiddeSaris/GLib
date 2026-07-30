@@ -4,20 +4,6 @@
 
 namespace GLib {
 
-    // void Model::Bind(Shader&  shader)
-    // {
-    //     for (unsigned int i = 0; i < m_Meshes.size(); i++){
-    //         m_Meshes[i].Bind(shader);
-    //     }
-    // }
-
-    // void Model::Draw(Shader & shader, const glm::vec3& position)
-    // {
-    //     for (unsigned int i = 0; i < m_Meshes.size(); i++){
-    //         m_Meshes[i].Draw(shader, position);
-    //     }
-    // }
-
     void Model::loadModel(std::string path)
     {
         std::cout << "Loading Model '" << path << "'... ";
@@ -52,6 +38,13 @@ namespace GLib {
         m_Directory = path.substr(0, path.find_last_of('/'));
 
         processNode(scene->mRootNode, scene);
+
+        for (auto& mesh : m_Meshes) {
+            if (mesh->IsTransparent()){
+                m_IsTransparent = true;
+                break;
+            }
+        }
 
         std::cout << "Done!" << "\n";
     }

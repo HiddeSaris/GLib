@@ -78,7 +78,7 @@ void main()
     // ambient
     vec3 ambient = u_Light.ambient * vec3(diffuseTex);
 
-    vec4 result = vec4(diffuse + specular + ambient, 1.0);
+    vec4 result = vec4(diffuse + specular + ambient, diffuseTex.a);
     Color = result * v_Color;
-    //Color = vec4(specular, 1.0f);
+    //Color = vec4(vec3(gl_FragCoord.z), 1.0);
 }

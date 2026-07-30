@@ -13,7 +13,7 @@ namespace GLib {
     Scene::Scene() {
         m_LastFrameTime = std::chrono::steady_clock::now();
         m_NumEntities = 0;
-        Window::ImGuiNewFrame();
+        m_Registry.on_construct<CameraComponent>().connect<&Scene::OnCameraCreated>(this);
     }
 
     Scene::~Scene() {
@@ -25,7 +25,7 @@ namespace GLib {
     Entity Scene::CreateEntity(const std::string& name) {
         m_NumEntities++;
         
-        Entity entity(m_Registry.create(), this);
+        Entity entity(m_Registry.create(), GetActiveScene());
         entity.Add<TransformComponent>();
         auto& tag = entity.Add<TagComponent>(name.empty() ? "Entity" : name);
         return entity;
@@ -51,6 +51,19 @@ namespace GLib {
         }
     }
 
+    Entity Scene::GetPrimaryCamera() const { 
+        return Entity(m_PrimaryCamera, GetActiveScene()); 
+    }
+
+    void Scene::SetPrimaryCamera(Entity cam) {
+        if (cam.Has<CameraComponent>()){
+            m_PrimaryCamera = cam.GetHandle();
+        }
+        else {
+            std::cout << "Warning [Scene::SetPrimaryCamera]: entity does not have a CameraComponent\n";
+        }
+    }
+
     double Scene::CalculateDeltaTime()
     {
         std::chrono::steady_clock::time_point time = std::chrono::steady_clock::now();
@@ -59,5 +72,10 @@ namespace GLib {
         m_LastFrameTime = time;
         return m_DeltaTime;
     }
-    
+
+    void Scene::OnCameraCreated(entt::registry& registry, entt::entity entity) {
+        if (m_PrimaryCamera == entt::null) {
+            m_PrimaryCamera = entity;
+        }
+    }
 }

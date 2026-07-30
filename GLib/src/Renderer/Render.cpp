@@ -5,6 +5,11 @@
 #include "Texture.h"
 #include "VertexArray.h"
 #include "Window/Window.h"
+#include "Scene/Entity.h"
+
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 
 #include <glad/glad.h>
 #include <glfw/glfw3.h>
@@ -16,6 +21,9 @@ namespace GLib {
     struct RenderData 
     {
         std::shared_ptr<Scene> ActiveScene;
+        
+        std::chrono::steady_clock::time_point BeginFrameTime;
+        double DeltaTime;
 
         std::shared_ptr<Shader> ColorShader;
         std::shared_ptr<Shader> TextureShader;
@@ -36,14 +44,20 @@ namespace GLib {
     static RenderData s_Data;
 
     void Render::Init() {
-        
+        InitImGui();
         SetClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
         //glDisable(GL_CULL_FACE);
         glEnable(GL_CULL_FACE);
 
         glLineWidth(1);
+
+        s_Data.DeltaTime = 0.016;
 
         {
             float quadVertices[] = {
@@ -134,8 +148,6 @@ namespace GLib {
         }
 
         s_Data.WhiteTexture = std::make_shared<Texture>(TextureSpecification());
-        uint32_t white = 0xffffffff;
-        s_Data.WhiteTexture->SetData(&white, sizeof(uint32_t));
         
         s_Data.ColorShader = std::make_shared<Shader>("assets/shaders/ColorShader.glsl");
         s_Data.TextureShader = std::make_shared<Shader>("assets/shaders/Texture.glsl");
@@ -143,23 +155,33 @@ namespace GLib {
         s_Data.TextureShader->Bind();
     }
 
-    void Render::BeginFrame(Camera camera, glm::mat4 transform, glm::vec3 camPos)
-    {
+    void Render::BeginFrame() {
+        Entity cam = s_Data.ActiveScene->GetPrimaryCamera();
+        TransformComponent transform = cam.Get<TransformComponent>(); //s_Data.ActiveScene->GetRegistry().get<TransformComponent>(cam);
+        CameraComponent camera = cam.Get<CameraComponent>(); //s_Data.ActiveScene->GetRegistry().get<CameraComponent>(cam);
+
+        BeginFrame(camera.m_Camera, transform.GetTransform(), transform.m_Translation);
+    }
+
+    void Render::BeginFrame(Camera camera, glm::mat4 transform, glm::vec3 camPos) {
         BeginFrame(camera.GetProjection() * glm::inverse(transform), camPos);
     }
 
-    void Render::BeginFrame(glm::mat4 viewProjection, glm::vec3 camPos)
-    {
+    void Render::BeginFrame(glm::mat4 viewProjection, glm::vec3 camPos) {
+        s_Data.BeginFrameTime = std::chrono::steady_clock::now();
         Clear();
         s_Data.ViewProjection = viewProjection;
         s_Data.CamPosition = camPos;
+        ImGuiNewFrame();
     }
 
-    void Render::EndFrame()
-    {
-        Window::ImGuiEndFrame();
+    void Render::EndFrame() {
+        ImGuiEndFrame();
         Window::Update();
-        Window::ImGuiNewFrame();
+        
+        std::chrono::steady_clock::time_point time = std::chrono::steady_clock::now();
+        std::chrono::duration<double> dt = time - s_Data.BeginFrameTime;
+        s_Data.DeltaTime = dt.count();
     }
 
     void Render::SetClearColor(float r, float g, float b, float a) {
@@ -171,13 +193,23 @@ namespace GLib {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    void Render::OnViewportResize(uint32_t width, uint32_t height)
-    {
+    void Render::OnViewportResize(uint32_t width, uint32_t height) {
         s_Data.ActiveScene->OnViewportResize(width, height);
     }
 
-    void Render::DrawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec3 &color)
-    {
+    std::shared_ptr<VertexArray> Render::GetQuadVertexArray() {
+        return s_Data.QuadVA;
+    }
+
+    std::shared_ptr<VertexArray> Render::GetCubeVertexArray() {
+        return s_Data.CubeVA;
+    }
+
+    double Render::GetDeltaTime() {
+        return s_Data.DeltaTime;
+    }
+
+    void Render::DrawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec3 &color) {
         s_Data.LineData.push_back(start.x);
         s_Data.LineData.push_back(start.y);
         s_Data.LineData.push_back(start.z);
@@ -216,21 +248,32 @@ namespace GLib {
         s_Data.LineData.clear();
     }
 
-    void Render::Submit(const VertexArray &vertexArray, const Texture &texture, const glm::mat4 &transformation, uint32_t indexCount)
+    void Render::RenderQuad(const glm::vec3& position, std::shared_ptr<Texture> texture) {
+        glm::mat4 trans = glm::mat4(1.0f);
+        trans = glm::rotate(trans, glm::radians((float)glfwGetTime() * 90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        trans = glm::scale(trans, glm::vec3(1.0f));
+        Submit(s_Data.QuadVA, texture, trans);
+    }
+
+    void Render::RenderCube(const glm::vec3& position) {
+        Submit(s_Data.CubeVA, s_Data.WhiteTexture, glm::translate(glm::mat4(1.0f), position));
+    }
+
+    void Render::Submit(std::shared_ptr<VertexArray> vertexArray, std::shared_ptr<Texture> texture, const glm::mat4 &transform, uint32_t indexCount)
     {
-        texture.Bind(0);
+        texture->Bind(0);
         s_Data.TextureShader->Bind();
         s_Data.TextureShader->UploadUniformMat4("u_ViewProjection", s_Data.ViewProjection);
-        s_Data.TextureShader->UploadUniformMat4("u_Model", transformation);
+        s_Data.TextureShader->UploadUniformMat4("u_Model", transform);
         s_Data.TextureShader->UploadUniformFloat3("u_ViewPos", s_Data.CamPosition);
         s_Data.TextureShader->UploadUniformFloat3("u_Light.position", glm::vec3(0.5f));
-        s_Data.TextureShader->UploadUniformFloat3("u_Light.ambient", glm::vec3(0.8f, 0.3f, 0.6f));
-        s_Data.TextureShader->UploadUniformFloat3("u_Light.diffuse", glm::vec3(0.8f, 0.3f, 0.6f));
+        s_Data.TextureShader->UploadUniformFloat3("u_Light.ambient", glm::vec3(0.8f, 0.5f, 0.3f));
+        s_Data.TextureShader->UploadUniformFloat3("u_Light.diffuse", glm::vec3(0.8f, 0.5f, 0.3f));
         s_Data.TextureShader->UploadUniformFloat3("u_Light.specular", glm::vec3(0.8f, 0.3f, 0.6f));
         s_Data.TextureShader->UploadUniformFloat("u_MaterialShininess", 32.0f);
-        vertexArray.Bind();
+        vertexArray->Bind();
 
-        uint32_t count = indexCount ? indexCount : vertexArray.GetIndexBuffer()->GetCount();
+        uint32_t count = indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetCount();
         glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
     }
 
@@ -268,10 +311,61 @@ namespace GLib {
             Submit(*mesh, transform);
         }
     }
-
-    std::shared_ptr<Scene> CreateScene()
+    
+    void Render::InitImGui()
     {
+        // Setup Dear ImGui context
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+        //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
+		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
+
+        // ImGuiViewport* viewport = ImGui::GetWindowViewport();
+        // viewport->Flags |= ImGuiViewportFlags_TopMost;
+        // Setup Platform/Renderer backends
+        ImGui_ImplGlfw_InitForOpenGL(Window::GetWindowID(), true);
+        ImGui_ImplOpenGL3_Init();
+    }
+
+    void Render::ImGuiNewFrame()
+    {
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+    }
+
+    void Render::ImGuiEndFrame()
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        io.DisplaySize = ImVec2((float)Window::GetWidth(), (float)Window::GetHeight());
+
+        // Rendering
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+            GLFWwindow* backup_current_context = glfwGetCurrentContext();
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+            glfwMakeContextCurrent(backup_current_context);
+        }
+    }
+
+
+    std::shared_ptr<Scene> CreateScene() {
         return s_Data.ActiveScene = std::make_shared<Scene>();
     }
 
+    void SetActiveScene(std::shared_ptr<Scene> scene) {
+        s_Data.ActiveScene = scene;
+    }
+
+    std::shared_ptr<Scene> GetActiveScene() {
+        return s_Data.ActiveScene;
+    }
 }
