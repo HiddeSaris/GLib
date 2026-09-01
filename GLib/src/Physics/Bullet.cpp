@@ -51,16 +51,16 @@ namespace GLib {
 
     void BulletMotionState::getWorldTransform(btTransform &t) const {
         t = btTransform(
-            ToBullet(m_Registry.get<TransformComponent>(m_Entity).m_Rotation),
-            ToBullet(m_Registry.get<TransformComponent>(m_Entity).m_Translation)
+            ToBullet(m_Registry.get<TransformComponent>(m_Entity).Rotation),
+            ToBullet(m_Registry.get<TransformComponent>(m_Entity).Translation)
         );
     }
 
     void BulletMotionState::setWorldTransform(const btTransform &t) {
         // translation
-        m_Registry.get<TransformComponent>(m_Entity).m_Translation = ToGlm(t.getOrigin());
+        m_Registry.get<TransformComponent>(m_Entity).Translation = ToGlm(t.getOrigin());
         // rotation
-        m_Registry.get<TransformComponent>(m_Entity).m_Rotation = ToGlm(t.getRotation());
+        m_Registry.get<TransformComponent>(m_Entity).Rotation = ToGlm(t.getRotation());
     }
 
     // Debug drawer

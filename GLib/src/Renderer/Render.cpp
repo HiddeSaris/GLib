@@ -18,6 +18,24 @@
 
 namespace GLib {
 
+    struct PointLight {
+        glm::vec3 Pos;
+        glm::vec3 Col;
+        float Intensity;
+    };
+    struct DirLight {
+        glm::vec3 Dir;
+        glm::vec3 Col;
+        float Intensity;
+    };struct SpotLight {
+        glm::vec3 Pos;
+        glm::vec3 Dir;
+        glm::vec3 Col;
+        float Intensity;
+        float Cutoff;
+        float OuterCutoff;
+    };
+
     struct RenderData 
     {
         std::shared_ptr<Scene> ActiveScene;
@@ -27,6 +45,7 @@ namespace GLib {
 
         std::shared_ptr<Shader> ColorShader;
         std::shared_ptr<Shader> TextureShader;
+        std::shared_ptr<Shader> PBRShader;
         
         std::shared_ptr<VertexArray> QuadVA;
         std::shared_ptr<VertexArray> CubeVA;
@@ -34,10 +53,15 @@ namespace GLib {
         std::vector<float> LineData;
         int MaxLineVertices;
         std::shared_ptr<VertexArray> LineVA;
+
+        std::vector<PointLight> PointLights;
+        std::vector<DirLight> DirLights;
+        std::vector<SpotLight> SpotLights;
         
         std::shared_ptr<Texture> WhiteTexture;
 
-        glm::mat4 ViewProjection = glm::mat4(1.0f);
+        glm::mat4 View = glm::mat4(1.0f);
+        glm::mat4 Projection = glm::mat4(1.0f);
         glm::vec3 CamPosition = glm::vec3(0.0f);
     };
 
@@ -45,7 +69,6 @@ namespace GLib {
 
     void Render::Init() {
         InitImGui();
-        SetClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
 
@@ -151,8 +174,9 @@ namespace GLib {
         
         s_Data.ColorShader = std::make_shared<Shader>("assets/shaders/ColorShader.glsl");
         s_Data.TextureShader = std::make_shared<Shader>("assets/shaders/Texture.glsl");
+        s_Data.PBRShader = std::make_shared<Shader>("assets/shaders/PBR.glsl");
 
-        s_Data.TextureShader->Bind();
+        s_Data.PBRShader->Bind();
     }
 
     void Render::BeginFrame() {
@@ -160,17 +184,18 @@ namespace GLib {
         TransformComponent transform = cam.Get<TransformComponent>(); //s_Data.ActiveScene->GetRegistry().get<TransformComponent>(cam);
         CameraComponent camera = cam.Get<CameraComponent>(); //s_Data.ActiveScene->GetRegistry().get<CameraComponent>(cam);
 
-        BeginFrame(camera.m_Camera, transform.GetTransform(), transform.m_Translation);
+        BeginFrame(camera.m_Camera, transform.GetTransform(), transform.Translation);
     }
 
     void Render::BeginFrame(Camera camera, glm::mat4 transform, glm::vec3 camPos) {
-        BeginFrame(camera.GetProjection() * glm::inverse(transform), camPos);
+        BeginFrame(glm::inverse(transform), camera.GetProjection(), camPos);
     }
 
-    void Render::BeginFrame(glm::mat4 viewProjection, glm::vec3 camPos) {
+    void Render::BeginFrame(glm::mat4 view, glm::mat4 projection, glm::vec3 camPos) {
         s_Data.BeginFrameTime = std::chrono::steady_clock::now();
         Clear();
-        s_Data.ViewProjection = viewProjection;
+        s_Data.View = view;
+        s_Data.Projection = projection;
         s_Data.CamPosition = camPos;
         ImGuiNewFrame();
     }
@@ -182,6 +207,10 @@ namespace GLib {
         std::chrono::steady_clock::time_point time = std::chrono::steady_clock::now();
         std::chrono::duration<double> dt = time - s_Data.BeginFrameTime;
         s_Data.DeltaTime = dt.count();
+
+        s_Data.PointLights.clear();
+        s_Data.DirLights.clear();
+        s_Data.SpotLights.clear();
     }
 
     void Render::SetClearColor(float r, float g, float b, float a) {
@@ -239,7 +268,7 @@ namespace GLib {
         int count = s_Data.LineData.size() / 6;
 
         s_Data.ColorShader->Bind();
-        s_Data.ColorShader->UploadUniformMat4("u_Transform", s_Data.ViewProjection);
+        s_Data.ColorShader->UploadUniformMat4("u_Transform", s_Data.Projection * s_Data.View);
         
         glDisable(GL_DEPTH_TEST);
         glDrawArrays(GL_LINES, 0, count);
@@ -259,11 +288,23 @@ namespace GLib {
         Submit(s_Data.CubeVA, s_Data.WhiteTexture, glm::translate(glm::mat4(1.0f), position));
     }
 
+    void Render::SubmitPointLight(glm::vec3 pos, glm::vec3 color, float intensity) {
+        s_Data.PointLights.push_back({pos, color, intensity});
+    }
+
+    void Render::SubmitDirLight(glm::vec3 dir, glm::vec3 color, float intensity) {
+        s_Data.DirLights.push_back({dir, color, intensity});
+    }
+
+    void Render::SubmitSpotLight(glm::vec3 pos, glm::vec3 dir, glm::vec3 color, float intensity, float cutoff, float outerCutoff) {
+        s_Data.SpotLights.push_back({pos, dir, color, intensity, cutoff, outerCutoff});
+    }
+
     void Render::Submit(std::shared_ptr<VertexArray> vertexArray, std::shared_ptr<Texture> texture, const glm::mat4 &transform, uint32_t indexCount)
     {
         texture->Bind(0);
         s_Data.TextureShader->Bind();
-        s_Data.TextureShader->UploadUniformMat4("u_ViewProjection", s_Data.ViewProjection);
+        s_Data.TextureShader->UploadUniformMat4("u_ViewProjection", s_Data.Projection * s_Data.View);
         s_Data.TextureShader->UploadUniformMat4("u_Model", transform);
         s_Data.TextureShader->UploadUniformFloat3("u_ViewPos", s_Data.CamPosition);
         s_Data.TextureShader->UploadUniformFloat3("u_Light.position", glm::vec3(0.5f));
@@ -277,41 +318,65 @@ namespace GLib {
         glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
     }
 
-    void Render::Submit(const Mesh &mesh, const glm::mat4 &transform)
-    {
-        s_Data.TextureShader->Bind();
-        s_Data.TextureShader->UploadUniformMat4("u_ViewProjection", s_Data.ViewProjection);
-        s_Data.TextureShader->UploadUniformMat4("u_Model", transform);
-        s_Data.TextureShader->UploadUniformFloat3("u_ViewPos", s_Data.CamPosition);
-        s_Data.TextureShader->UploadUniformFloat3("u_Light.position", glm::vec3(20.0f));
-        s_Data.TextureShader->UploadUniformFloat3("u_Light.ambient", glm::vec3(0.8f, 0.5f, 0.3f));
-        s_Data.TextureShader->UploadUniformFloat3("u_Light.diffuse", glm::vec3(0.8f, 0.5f, 0.3f));
-        s_Data.TextureShader->UploadUniformFloat3("u_Light.specular", glm::vec3(0.8f, 0.5f, 0.3f));
-        s_Data.TextureShader->UploadUniformFloat("u_MaterialShininess", 32.0f);
-        
-        if (mesh.GetTextures().size() == 0){
+    void Render::Submit(std::shared_ptr<Mesh> mesh, const glm::mat4 &transform) {
+        UploadPBRUniforms(transform);
+
+        if (mesh->GetTextures().size() == 0){
             s_Data.WhiteTexture->Bind(0);
         }
-        else {
-            for (uint32_t i = 0; i < mesh.GetTextures().size(); i++){
-                mesh.GetTextures()[i]->Bind(i);
-            }
-        }
         
-        mesh.Bind(*s_Data.TextureShader);
+        mesh->Bind(*s_Data.PBRShader);
 
-        glDrawElements(GL_TRIANGLES, mesh.GetVertexArray().GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, mesh->GetVertexArray().GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
         glActiveTexture(GL_TEXTURE0);
     }
 
     void Render::Submit(Model &model, const glm::mat4& transform)
     {
+        std::cout << "Warning [Render::Submit]: Deprecated\n";
         for (std::shared_ptr<Mesh> mesh : model.GetMeshes()) {
-            Submit(*mesh, transform);
+            Submit(mesh, transform);
         }
     }
-    
+
+    void Render::UploadPBRUniforms(const glm::mat4& transform) {
+        s_Data.PBRShader->Bind();
+        s_Data.PBRShader->UploadUniformMat4("u_Projection", s_Data.Projection);
+        s_Data.PBRShader->UploadUniformMat4("u_View", s_Data.View);
+        s_Data.PBRShader->UploadUniformMat4("u_Model", transform);
+        s_Data.PBRShader->UploadUniformMat3("u_NormalMatrix", glm::transpose(glm::inverse(glm::mat3(transform))));
+        glm::vec3 camPos = glm::vec3(glm::inverse(s_Data.View)[3]);
+        s_Data.PBRShader->UploadUniformFloat3("u_CamPos", camPos);
+
+        for (int i = 0; i < s_Data.PointLights.size(); i++){
+            std::string name = std::string("u_PointLights[") + std::to_string(i);
+            s_Data.PBRShader->UploadUniformFloat3(name + "].Position", s_Data.PointLights[i].Pos);
+            s_Data.PBRShader->UploadUniformFloat3(name + "].Color", s_Data.PointLights[i].Col);
+            s_Data.PBRShader->UploadUniformFloat(name + "].Intensity", s_Data.PointLights[i].Intensity);
+        }
+        s_Data.PBRShader->UploadUniformInt("u_NumPointLights", s_Data.PointLights.size());
+
+        for (int i = 0; i < s_Data.DirLights.size(); i++){
+            std::string name = std::string("u_DirLights[") + std::to_string(i);
+            s_Data.PBRShader->UploadUniformFloat3(name + "].Direction", s_Data.DirLights[i].Dir);
+            s_Data.PBRShader->UploadUniformFloat3(name + "].Color", s_Data.DirLights[i].Col);
+            s_Data.PBRShader->UploadUniformFloat(name + "].Intensity", s_Data.DirLights[i].Intensity);
+        }
+        s_Data.PBRShader->UploadUniformInt("u_NumDirLights", s_Data.DirLights.size());
+
+        for (int i = 0; i < s_Data.SpotLights.size(); i++){
+            std::string name = std::string("u_SpotLights[") + std::to_string(i);
+            s_Data.PBRShader->UploadUniformFloat3(name + "].Position", s_Data.SpotLights[i].Pos);
+            s_Data.PBRShader->UploadUniformFloat3(name + "].Direction", s_Data.SpotLights[i].Dir);
+            s_Data.PBRShader->UploadUniformFloat3(name + "].Color", s_Data.SpotLights[i].Col);
+            s_Data.PBRShader->UploadUniformFloat(name + "].Intensity", s_Data.SpotLights[i].Intensity);
+            s_Data.PBRShader->UploadUniformFloat(name + "].Cutoff", glm::cos(glm::radians(s_Data.SpotLights[i].Cutoff)));
+            s_Data.PBRShader->UploadUniformFloat(name + "].OuterCutoff", glm::cos(glm::radians(s_Data.SpotLights[i].OuterCutoff)));
+        }
+        s_Data.PBRShader->UploadUniformInt("u_NumSpotLights", s_Data.SpotLights.size());
+    }
+
     void Render::InitImGui()
     {
         // Setup Dear ImGui context

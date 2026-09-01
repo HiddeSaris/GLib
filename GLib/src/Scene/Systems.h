@@ -23,11 +23,11 @@ namespace GLib {
     };
 
     struct RenderSystem : public System {
-        void OnInit(Scene& scene) override;
+        //void OnInit(Scene& scene) override;
 
         void OnUpdate(Scene& scene, double dt) override;
 
-        void OnCleanup(Scene& scene) override;
+        //void OnCleanup(Scene& scene) override;
 
         int GetPriority() const override {
             return INT_MAX - 100;
@@ -122,7 +122,7 @@ namespace GLib {
             m_CollisionShapes.push_back(rigidBody.m_Shape);
             std::cout << "rigidbody created: " << rigidBody.m_Shape->getName() << "\n";
 
-            rigidBody.m_Shape->setLocalScaling(ToBullet(registry.get<TransformComponent>(entity).m_Scale));
+            rigidBody.m_Shape->setLocalScaling(ToBullet(registry.get<TransformComponent>(entity).Scale));
 
             //rigidbody is dynamic if and only if mass is non zero, otherwise static
             btVector3 localInertia(0.0f, 0.0f, 0.0f);

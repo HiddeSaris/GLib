@@ -23,7 +23,7 @@ namespace GLib {
         template<typename T>
         T& Get() {
             if (!Has<T>()){
-                std::cout << "Error [GetComponent]: Entity doesnt have component!" << std::endl;
+                std::cout << "Error [GetComponent]: Entity doesnt have component '" << typeid(T).name() << "'!" << std::endl;
             }
             return m_Scene->GetRegistry().get<T>(m_EntityHandle);
         }

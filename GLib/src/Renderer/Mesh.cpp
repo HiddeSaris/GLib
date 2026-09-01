@@ -55,6 +55,21 @@ namespace GLib {
             else if (type == TextureType::Specular){
                 shader.UploadUniformInt("texture_specular", i);
             }
+            else if (type == TextureType::Albedo){
+                shader.UploadUniformInt("u_AlbedoMap", i);
+            }
+            else if (type == TextureType::Normal){
+                shader.UploadUniformInt("u_NormalMap", i);
+            }
+            else if (type == TextureType::Metallic){
+                shader.UploadUniformInt("u_MetallicMap", i);
+            }
+            else if (type == TextureType::Roughness){
+                shader.UploadUniformInt("u_RoughnessMap", i);
+            }
+            else if (type == TextureType::AmbientOcclusion){
+                shader.UploadUniformInt("u_AOMap", i);
+            }
             else {
                 std::cout << "Error [Mesh::Bind]: Unknown Texture type!\n";
             }

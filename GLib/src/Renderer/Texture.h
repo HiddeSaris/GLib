@@ -2,7 +2,11 @@
 
 #include <utility>
 #include <string>
+#include <vector>
+#include <memory>
 
+// froward declaration without including stbi_image
+extern "C" void stbi_image_free(void* retval_from_stbi_load);
 
 namespace GLib{
 
@@ -11,6 +15,10 @@ namespace GLib{
         Diffuse,
         Specular,
         Albedo,
+        Normal,
+        Metallic,
+        Roughness,
+        AmbientOcclusion,
     };
 
     struct TextureSpecification {
@@ -29,8 +37,16 @@ namespace GLib{
 
     class Texture {
     public:
+        struct PixelData {
+            std::unique_ptr<uint8_t[], void(*)(void*)> Data{ nullptr, stbi_image_free };
+            int Width = 0, Height = 0, Channels = 0;
+            bool IsTransparent = false;
+            bool IsLoaded = false;
+        };
+
         Texture(const TextureSpecification& specification);
         Texture(const std::string& path, TextureType type);
+        Texture(std::string path, TextureType type, const PixelData& pixels);
         ~Texture();
 
         Texture(const Texture&) = delete;
@@ -53,6 +69,8 @@ namespace GLib{
 
         void Bind(uint32_t slot = 0) const;
 
+        static void LoadPixelData(const std::string& path, TextureType type, PixelData& out);
+
         bool IsLoaded() const { return m_IsLoaded; }
         bool IsTransparent() const { return m_IsTransparent; }
 
@@ -61,7 +79,7 @@ namespace GLib{
         }
     private:
         TextureSpecification m_Specification;
-        TextureType m_Type = TextureType::Diffuse;
+        TextureType m_Type = TextureType::Albedo;
 
         std::string m_Path;
         bool m_IsLoaded = false;

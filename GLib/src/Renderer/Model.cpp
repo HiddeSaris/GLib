@@ -1,5 +1,7 @@
 #include "Model.h"
 
+#include "glm/gtc/type_ptr.hpp"
+
 #include <filesystem>
 
 namespace GLib {
@@ -12,9 +14,8 @@ namespace GLib {
         Assimp::Importer import;
         const aiScene* scene = nullptr;
 
-        if (std::filesystem::exists(binPath)) {
+        if (std::filesystem::exists(binPath)) 
             scene = import.ReadFile(binPath, 0);
-        }
 
         if (!scene) {
             scene = import.ReadFile(path, 
@@ -37,114 +38,132 @@ namespace GLib {
         }
         m_Directory = path.substr(0, path.find_last_of('/'));
 
-        processNode(scene->mRootNode, scene);
+        std::vector<MeshBuildData> meshData;
+        processNode(scene->mRootNode, scene, glm::mat4(1.0f), meshData);
 
-        for (auto& mesh : m_Meshes) {
-            if (mesh->IsTransparent()){
-                m_IsTransparent = true;
-                break;
+        m_Meshes.reserve(meshData.size());
+        for (auto& data : meshData) {
+            std::vector<std::shared_ptr<Texture>> textures = std::move(data.ReadyTextures);
+
+            for (auto& pending : data.PendingTextures) {
+                auto it = m_TexturesLoaded.find(pending.path);
+                if (it != m_TexturesLoaded.end()){
+                    textures.push_back(it->second);
+                    continue;
+                }
+
+                const Texture::PixelData& pixels = pending.future.get();
+                if (!pixels.IsLoaded) continue;
+
+                auto texture = std::make_shared<Texture>(pending.path, pending.type, pixels);
+                m_TexturesLoaded[pending.path] = texture;
+                textures.push_back(texture);
             }
+
+            auto mesh = std::make_shared<Mesh>(textures, data.Vertices.data(), (uint32_t)(data.Vertices.size() * sizeof(float)), 
+                                               data.Indices.data(), (uint32_t)data.Indices.size());
+
+            if (mesh->IsTransparent())
+                m_IsTransparent = true;
+            
+            m_Meshes.push_back(mesh);
         }
 
-        std::cout << "Done!" << "\n";
+        m_PendingTextures.clear();
+        std::cout << "Done!\n";
     }
 
-    void Model::processNode(aiNode* node, const aiScene* scene)
-    {
+    void Model::processNode(aiNode* node, const aiScene* scene, const glm::mat4& parentTransform, std::vector<MeshBuildData>& out) {
+        glm::mat4 transform = parentTransform * AiToGlm(node->mTransformation);
         for (unsigned int i = 0; i < node->mNumMeshes; i++){
             aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
-            m_Meshes.push_back(processMesh(mesh, scene));
+            out.push_back(processMesh(mesh, scene, transform));
         }
         for (unsigned int i = 0; i < node->mNumChildren; i++){
-            processNode(node->mChildren[i], scene);
+            processNode(node->mChildren[i], scene, transform, out);
         }
     }
 
-    std::shared_ptr<Mesh> Model::processMesh(aiMesh* mesh, const aiScene* scene)
+    Model::MeshBuildData Model::processMesh(aiMesh* mesh, const aiScene* scene, glm::mat4& transform)
     {
-        std::vector<std::shared_ptr<Texture>> textures;
-        std::vector<float> vertices;
-        std::vector<uint32_t> indices;
+        MeshBuildData data;
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
 
         for (unsigned int i = 0; i < mesh->mNumVertices; i++){
-            // "a_Position", GL_FLOAT, 3
-            vertices.push_back(mesh->mVertices[i].x);
-            vertices.push_back(mesh->mVertices[i].y);
-            vertices.push_back(mesh->mVertices[i].z);
+            glm::vec4 pos = transform * glm::vec4(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z, 1.0f);
+            glm::vec3 normal = glm::normalize(normalMatrix * glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z));
 
-            // "a_Normal", GL_FLOAT, 3
-            vertices.push_back(mesh->mNormals[i].x);
-            vertices.push_back(mesh->mNormals[i].y);
-            vertices.push_back(mesh->mNormals[i].z);
+            data.Vertices.insert(data.Vertices.end(), {
+                pos.x, pos.y, pos.z,         // "a_Position", GL_FLOAT, 3
+                normal.x, normal.y, normal.z // "a_Normal", GL_FLOAT, 3
+            });
 
             // "a_TexCoord", GL_FLOAT, 2
             if (mesh->mTextureCoords[0]){
-                vertices.push_back(mesh->mTextureCoords[0][i].x);
-                vertices.push_back(mesh->mTextureCoords[0][i].y);
+                data.Vertices.insert(data.Vertices.end(), { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y });
             }
             else {
-                vertices.push_back(0.0f);
-                vertices.push_back(0.0f);
+                data.Vertices.insert(data.Vertices.end(), { 0.0f, 0.0f });
             }
 
             // "a_Color", GL_FLOAT, 4
             if (mesh->mColors[0]){
-                vertices.push_back(mesh->mColors[0][i].r);
-                vertices.push_back(mesh->mColors[0][i].g);
-                vertices.push_back(mesh->mColors[0][i].b);
-                vertices.push_back(mesh->mColors[0][i].a);
+                data.Vertices.insert(data.Vertices.end(), { mesh->mColors[0][i].r, mesh->mColors[0][i].g, mesh->mColors[0][i].b, mesh->mColors[0][i].a });
             }
             else {
-                vertices.push_back(1.0f);
-                vertices.push_back(1.0f);
-                vertices.push_back(1.0f);
-                vertices.push_back(1.0f);
+                data.Vertices.insert(data.Vertices.end(), { 1.0f, 1.0f, 1.0f, 1.0f });
             }
         }
 
         for (unsigned int i = 0; i < mesh->mNumFaces; i++){
             aiFace face = mesh->mFaces[i];
             for (unsigned int j = 0; j < face.mNumIndices; j++){
-                indices.push_back(face.mIndices[j]);
+                data.Indices.push_back(face.mIndices[j]);
             }
         }
 
         if (mesh->mMaterialIndex >= 0){
             aiMaterial * material = scene->mMaterials[mesh->mMaterialIndex];
-
-            std::vector<std::shared_ptr<Texture>> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, TextureType::Diffuse);
-            textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-
-            std::vector<std::shared_ptr<Texture>> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, TextureType::Specular);
-            textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+            loadMaterialTextures(material, aiTextureType_BASE_COLOR,        TextureType::Albedo,            data);
+            loadMaterialTextures(material, aiTextureType_NORMALS,           TextureType::Normal,            data);
+            loadMaterialTextures(material, aiTextureType_METALNESS,         TextureType::Metallic,          data);
+            loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, TextureType::Roughness,         data);
+            loadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION, TextureType::AmbientOcclusion,  data);
+            loadMaterialTextures(material, aiTextureType_DIFFUSE,           TextureType::Diffuse,           data);
+            loadMaterialTextures(material, aiTextureType_SPECULAR,          TextureType::Specular,          data);
         }
         
-        return std::make_shared<Mesh>(textures, vertices.data(), vertices.size() * sizeof(float), indices.data(), (uint32_t)indices.size());
+        return data;
     }
 
-    std::vector<std::shared_ptr<Texture>> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType aiType, TextureType textureType)
+    void Model::loadMaterialTextures(aiMaterial* mat, aiTextureType aiType, TextureType textureType, MeshBuildData& data)
     {
-        std::vector<std::shared_ptr<Texture>> textures;
         for (unsigned int i = 0; i < mat->GetTextureCount(aiType); i++){
             aiString str;
             mat->GetTexture(aiType, i, &str);
-            bool skip = false;
-            for (unsigned int j = 0; j < m_TexturesLoaded.size(); j++){
-                if (std::strcmp(m_TexturesLoaded[j]->GetPath().data(), (m_Directory + "/" + str.C_Str()).c_str()) == 0){
-                    textures.push_back(m_TexturesLoaded[j]);
-                    skip = true;
-                    break;
-                }
+            std::string path = m_Directory + '/' + str.C_Str();
+
+            if (auto it = m_TexturesLoaded.find(path); it != m_TexturesLoaded.end()) {
+                data.ReadyTextures.push_back(it->second);
+                continue;
+            }
+            if (auto it = m_PendingTextures.find(path); it != m_PendingTextures.end()) {
+                data.PendingTextures.push_back({ path, textureType, it->second});
+                continue;
             }
 
-            if (!skip){
-                std::shared_ptr<Texture> texture = std::make_shared<Texture>(m_Directory + '/' + str.C_Str(), textureType);
-                textures.push_back(texture);
-                m_TexturesLoaded.push_back(texture);
-            }
+            std::shared_future<Texture::PixelData> future = std::async(std::launch::async, [path, textureType]() {
+                Texture::PixelData data;
+                Texture::LoadPixelData(path, textureType, data);
+                return data;
+            }).share();
+
+            m_PendingTextures[path] = future;
+            data.PendingTextures.push_back({ path, textureType, future });
         }
-
-        return textures;
     }
 
+    glm::mat4 Model::AiToGlm(const aiMatrix4x4 &mat) {
+        return glm::transpose(glm::make_mat4(&mat.a1));
+    }
 }

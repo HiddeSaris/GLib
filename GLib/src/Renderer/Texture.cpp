@@ -71,7 +71,7 @@ namespace GLib {
                 exit(1);
             }
 
-            if (channels == 4 && type == TextureType::Diffuse || type == TextureType::Albedo) {
+            if (channels == 4 && (type == TextureType::Diffuse || type == TextureType::Albedo)) {
                 for (int i = 0; i < width * height; i++) {
                     uint8_t alpha = data[i * 4 + 3];
                     if (alpha < 250) {  // small threshold avoids false positives from lossy compression artifacts
@@ -96,9 +96,35 @@ namespace GLib {
             stbi_image_free(data);
         }
         else {
-            std::cout << "ERROR: Failed to load image for Texture2d";
-            exit(1);
+            std::cout << "ERROR [Texture]: Failed to load texture: " << path << std::endl;
         }
+    }
+
+    Texture::Texture(std::string path, TextureType type, const PixelData& pixels) {
+        m_Path = path;
+        m_Type = type;
+        m_Width = pixels.Width;
+        m_Height = pixels.Height;
+        m_IsTransparent = pixels.IsTransparent;
+        m_InternalFormat = pixels.Channels == 4 ? GL_RGBA8 : GL_RGB8;
+        m_DataFormat = pixels.Channels == 4 ? GL_RGBA : GL_RGB;
+
+        if (m_InternalFormat == 0 || m_DataFormat == 0) {
+            std::cout << "ERROR [Texture]: Image format not supported\n";
+        }
+        glGenTextures(1, &m_RendererID);
+        glBindTexture(GL_TEXTURE_2D, m_RendererID);
+        glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, m_Width, m_Height, 0, m_DataFormat, GL_UNSIGNED_BYTE, nullptr);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Width, m_Height, m_DataFormat, GL_UNSIGNED_BYTE, pixels.Data.get());
+
+        m_IsLoaded = pixels.IsLoaded;
     }
 
     Texture::~Texture()
@@ -110,6 +136,7 @@ namespace GLib {
     Texture::Texture(Texture&& other) noexcept
         : m_Specification(other.m_Specification), m_Type(other.m_Type),
           m_Path(std::move(other.m_Path)), m_IsLoaded(other.m_IsLoaded),
+          m_IsTransparent(other.m_IsTransparent),
           m_Width(other.m_Width), m_Height(other.m_Height),
           m_RendererID(other.m_RendererID),
           m_InternalFormat(other.m_InternalFormat), m_DataFormat(other.m_DataFormat)
@@ -128,6 +155,7 @@ namespace GLib {
             m_Type = other.m_Type;
             m_Path = std::move(other.m_Path);
             m_IsLoaded = other.m_IsLoaded;
+            m_IsTransparent = other.m_IsTransparent;
             m_Width = other.m_Width;
             m_Height = other.m_Height;
             m_RendererID = other.m_RendererID;
@@ -148,7 +176,7 @@ namespace GLib {
             exit(1);
         }
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
-        glTexImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Width, m_Height, m_DataFormat, GL_UNSIGNED_BYTE, data);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Width, m_Height, m_DataFormat, GL_UNSIGNED_BYTE, data);
     }
 
     // void Texture::AttachToFramebuffer()
@@ -162,4 +190,31 @@ namespace GLib {
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
     }
 
+    void Texture::LoadPixelData(const std::string& path, TextureType type, PixelData& out) {
+        stbi_set_flip_vertically_on_load(0); // dont flip because of thread safety
+        int width, height, channels;
+        stbi_uc* data = nullptr;
+        data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+
+        if (!data) {
+            std::cout << "ERROR [Texture::LoadPixelData]: Failed to load texture: " << path << std::endl;
+            return;
+        }
+
+        out.Width = width;
+        out.Height = height;
+        out.Channels = channels;
+        out.Data.reset(data);
+
+        if (channels == 4 && (type == TextureType::Diffuse || type == TextureType::Albedo)) {
+            for (int i = 0; i < width * height; i++) {
+                if (out.Data[i * 4 + 3] < 250) {  // small threshold avoids false positives from lossy compression artifacts
+                    out.IsTransparent = true;
+                    break;
+                }
+            }
+        }
+
+        out.IsLoaded = true;
+    }
 }
