@@ -1,5 +1,7 @@
 #include "Texture.h"
 
+#include "Window/Window.h"
+
 #include <iostream>
 
 #include <glad/glad.h>
@@ -32,6 +34,8 @@ namespace GLib {
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        
+        CheckGLError("Texture");
 
         if (m_Width == 1 && m_Height == 1){
             uint32_t white = 0xffffffff;
@@ -92,6 +96,8 @@ namespace GLib {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Width, m_Height, dataFormat, GL_UNSIGNED_BYTE, data);
+
+            CheckGLError("Texture");
 
             stbi_image_free(data);
         }

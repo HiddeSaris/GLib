@@ -197,7 +197,7 @@ namespace GLib {
         s_Width = width;
         s_Height = height;
         glViewport(0, 0, width, height);
-        if (width != 0 || height != 0)
+        if (width != 0 && height != 0)
             Render::OnViewportResize(width, height);
     } 
 
@@ -275,5 +275,12 @@ namespace GLib {
     bool Window::IsFullscreen()
     {
         return glfwGetWindowMonitor(s_Window) != nullptr;
+    }
+
+    void CheckGLError(const char* label) {
+        GLenum err;
+        while ((err = glGetError()) != GL_NO_ERROR) {
+            std::cout << "GL Error [" << label << "]: 0x" << std::hex << err << std::dec << "\n";
+        }
     }
 }

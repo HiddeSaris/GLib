@@ -1,5 +1,6 @@
 #include "Buffer.h"
 
+#include "window/Window.h"
 #include "glad/glad.h"
 
 namespace GLib {
@@ -12,6 +13,7 @@ namespace GLib {
         glGenBuffers(1, &m_RendererID);
         glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
         glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
+        CheckGLError("VertexBuffer");
     }
 
     VertexBuffer::VertexBuffer(float *vertices, size_t size)
@@ -19,6 +21,7 @@ namespace GLib {
         glGenBuffers(1, &m_RendererID);
         glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
         glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+        CheckGLError("VertexBuffer");
     }
 
     VertexBuffer::~VertexBuffer()
@@ -73,6 +76,7 @@ namespace GLib {
         glGenBuffers(1, &m_RendererID);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint32_t), indices, GL_STATIC_DRAW);
+        CheckGLError("IndexBuffer");
     }
 
     IndexBuffer::~IndexBuffer()

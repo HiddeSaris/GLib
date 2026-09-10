@@ -55,4 +55,6 @@ namespace GLib {
         static void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset); 
     };
 
+    void CheckGLError(const char* label);
+    
 }   

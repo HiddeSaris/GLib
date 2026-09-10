@@ -332,13 +332,12 @@ namespace GLib {
         glActiveTexture(GL_TEXTURE0);
     }
 
-    void Render::Submit(Model &model, const glm::mat4& transform)
-    {
-        std::cout << "Warning [Render::Submit]: Deprecated\n";
-        for (std::shared_ptr<Mesh> mesh : model.GetMeshes()) {
-            Submit(mesh, transform);
-        }
-    }
+    // void Render::Submit(Model &model, const glm::mat4& transform)
+    // {
+    //     for (std::shared_ptr<Mesh> mesh : model.GetMeshes()) {
+    //         Submit(mesh, transform);
+    //     }
+    // }
 
     void Render::UploadPBRUniforms(const glm::mat4& transform) {
         s_Data.PBRShader->Bind();

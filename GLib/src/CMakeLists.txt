@@ -31,7 +31,9 @@ set_target_properties(glfw3 PROPERTIES
 # ---- STB_IMAGE ----
 set(STB_ROOT ${PROJECT_SOURCE_DIR}/GLib/vendor/stb_image)
 
-add_library(stb_image STATIC ${STB_ROOT}/include/stb_image.cpp)
+add_library(stb_image STATIC 
+    ${STB_ROOT}/include/stb_image.cpp
+)
 target_include_directories(stb_image PUBLIC ${STB_ROOT}/include)
 
 # ---- IMGUI ----

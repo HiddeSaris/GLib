@@ -9,7 +9,7 @@
 
 int main() {
     std::cout << "Starting...\n";
-    GLib::Window::Init(700, 700, "Hello Window", false);
+    GLib::Window::Init(700, 700, "GLib Game Engine", false);
     GLib::Render::SetClearColor(0.5f, 0.7f, 0.9f, 1.0f);
     std::shared_ptr<GLib::Scene> scene = GLib::CreateScene();
 
