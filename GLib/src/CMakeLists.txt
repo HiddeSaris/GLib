@@ -82,6 +82,10 @@ set(USE_GLUT              OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(${BULLET_ROOT} ${CMAKE_BINARY_DIR}/bullet)
 
+# ---- FASTGLTF ----
+set(FASTGLTF_ROOT ${PROJECT_SOURCE_DIR}/GLib/vendor/fastgltf)
+add_subdirectory(${FASTGLTF_ROOT} ${CMAKE_BINARY_DIR}/fastgltf)
+
 # ---- ASSIMP ----
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "" FORCE)
 set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -115,7 +119,11 @@ add_library(GLib STATIC
     Scene/Scene.cpp
     Scene/Entity.cpp
     Scene/Systems.cpp
+    Asset/Asset.cpp
+    Asset/AssetManager.cpp
+    Asset/AssetLoader.cpp
     Physics/Bullet.cpp
+    Asset/Loaders/GltfLoader.cpp
 )
 
 target_include_directories(GLib
@@ -127,6 +135,6 @@ target_include_directories(GLib
 )
 
 target_link_libraries(GLib
-    PUBLIC  glm assimp imgui entt LinearMath BulletCollision BulletDynamics
+    PUBLIC  glm assimp imgui entt LinearMath BulletCollision BulletDynamics fastgltf::fastgltf
     PRIVATE glad opengl32 glfw3 stb_image
 )

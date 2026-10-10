@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <filesystem>
 
 // froward declaration without including stbi_image
 extern "C" void stbi_image_free(void* retval_from_stbi_load);
@@ -46,7 +47,7 @@ namespace GLib{
 
         Texture(const TextureSpecification& specification);
         Texture(const std::string& path, TextureType type);
-        Texture(std::string path, TextureType type, const PixelData& pixels);
+        Texture(TextureType type, const PixelData& pixels);
         ~Texture();
 
         Texture(const Texture&) = delete;
@@ -62,14 +63,12 @@ namespace GLib{
         uint32_t GetRendererID() const { return m_RendererID; }
         TextureType GetType() const { return m_Type; }
 
-        const std::string& GetPath() const { return m_Path; }
-
         void SetData(void* data, uint32_t size);
         //void AttachToFramebuffer();
 
         void Bind(uint32_t slot = 0) const;
 
-        static void LoadPixelData(const std::string& path, TextureType type, PixelData& out);
+        static void LoadPixelData(const std::filesystem::path& path, TextureType type, PixelData& out);
 
         bool IsLoaded() const { return m_IsLoaded; }
         bool IsTransparent() const { return m_IsTransparent; }
@@ -81,7 +80,6 @@ namespace GLib{
         TextureSpecification m_Specification;
         TextureType m_Type = TextureType::Albedo;
 
-        std::string m_Path;
         bool m_IsLoaded = false;
         bool m_IsTransparent = false;
         uint32_t m_Width, m_Height;

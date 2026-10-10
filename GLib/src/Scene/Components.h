@@ -2,6 +2,8 @@
 
 #include "Renderer/Model.h"
 #include "Renderer/Camera.h"
+#include "Asset/AssetManager.h"
+#include "Asset/Loaders/GltfLoader.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -92,8 +94,12 @@ namespace GLib {
         }
     };
 
-    struct ModelComponent
-    {
+    struct GltfSceneComponent {
+        // tell the scene it should add the gltf scene as children of this entity when it is finished loading
+        Handle<Gltf> gltf;
+    };
+
+    struct ModelComponent {
         Model m_Model;
 
         ModelComponent(const ModelComponent&) = default;
@@ -154,13 +160,13 @@ namespace GLib {
     struct VertexArrayComponent
     {
         std::shared_ptr<VertexArray> m_VertexArray;
-        std::shared_ptr<Texture> m_Texture;
+        Handle<Texture> m_Texture;
 
         VertexArrayComponent(const VertexArrayComponent&) = default;
         VertexArrayComponent(std::shared_ptr<VertexArray> vertexArray)
-            : m_VertexArray(std::move(vertexArray)), m_Texture(std::make_shared<Texture>(TextureSpecification())) {}
-        VertexArrayComponent(std::shared_ptr<VertexArray> vertexArray, std::shared_ptr<Texture> texture)
-            : m_VertexArray(std::move(vertexArray)), m_Texture(std::move(texture)) {}
+            : m_VertexArray(std::move(vertexArray)), m_Texture(AssetManager::Add(std::make_shared<Texture>(TextureSpecification()))) {}
+        VertexArrayComponent(std::shared_ptr<VertexArray> vertexArray, Handle<Texture> texture)
+            : m_VertexArray(std::move(vertexArray)), m_Texture(texture) {}
     };
 
     struct CameraComponent 

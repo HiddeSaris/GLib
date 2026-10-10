@@ -17,8 +17,8 @@ namespace GLib {
     //     m_VertexArray.SetIndexBuffer(m_IndexBuffer);
     // }
 
-    Mesh::Mesh(std::vector<std::shared_ptr<Texture>> textures, float *vertices, uint32_t vertex_count, uint32_t *indices, uint32_t index_count)
-        : m_Textures(textures)
+    Mesh::Mesh(/*std::vector<std::shared_ptr<Texture>> textures, */float *vertices, uint32_t vertex_count, uint32_t *indices, uint32_t index_count)
+        //: m_Textures(textures)
     {
         m_VertexArray.Bind();
 
@@ -30,50 +30,50 @@ namespace GLib {
         m_VertexArray.SetIndexBuffer(m_IndexBuffer);
         m_VertexArray.Unbind();
 
-        for (auto& tex : m_Textures){
-            if (tex->IsTransparent()) {
-                m_IsTransparent = true;
-                break;
-            }
-        }
+        // for (auto& tex : m_Textures){
+        //     if (tex->IsTransparent()) {
+        //         m_IsTransparent = true;
+        //         break;
+        //     }
+        // }
         
     }
 
     void Mesh::Bind(Shader &shader) const
     {
         shader.Bind();
-        for (unsigned int i = 0; i < m_Textures.size(); i++) {
-            if (!m_Textures[i]->IsLoaded())
-                continue;
+        // for (unsigned int i = 0; i < m_Textures.size(); i++) {
+        //     if (!m_Textures[i]->IsLoaded())
+        //         continue;
             
-            m_Textures[i]->Bind(i);
+        //     m_Textures[i]->Bind(i);
 
-            TextureType type = m_Textures[i]->GetType();
-            if (type == TextureType::Diffuse){
-                shader.UploadUniformInt("texture_diffuse", i);
-            }
-            else if (type == TextureType::Specular){
-                shader.UploadUniformInt("texture_specular", i);
-            }
-            else if (type == TextureType::Albedo){
-                shader.UploadUniformInt("u_AlbedoMap", i);
-            }
-            else if (type == TextureType::Normal){
-                shader.UploadUniformInt("u_NormalMap", i);
-            }
-            else if (type == TextureType::Metallic){
-                shader.UploadUniformInt("u_MetallicMap", i);
-            }
-            else if (type == TextureType::Roughness){
-                shader.UploadUniformInt("u_RoughnessMap", i);
-            }
-            else if (type == TextureType::AmbientOcclusion){
-                shader.UploadUniformInt("u_AOMap", i);
-            }
-            else {
-                std::cout << "Error [Mesh::Bind]: Unknown Texture type!\n";
-            }
-        }
+        //     TextureType type = m_Textures[i]->GetType();
+        //     if (type == TextureType::Diffuse){
+        //         shader.UploadUniformInt("texture_diffuse", i);
+        //     }
+        //     else if (type == TextureType::Specular){
+        //         shader.UploadUniformInt("texture_specular", i);
+        //     }
+        //     else if (type == TextureType::Albedo){
+        //         shader.UploadUniformInt("u_AlbedoMap", i);
+        //     }
+        //     else if (type == TextureType::Normal){
+        //         shader.UploadUniformInt("u_NormalMap", i);
+        //     }
+        //     else if (type == TextureType::Metallic){
+        //         shader.UploadUniformInt("u_MetallicMap", i);
+        //     }
+        //     else if (type == TextureType::Roughness){
+        //         shader.UploadUniformInt("u_RoughnessMap", i);
+        //     }
+        //     else if (type == TextureType::AmbientOcclusion){
+        //         shader.UploadUniformInt("u_AOMap", i);
+        //     }
+        //     else {
+        //         std::cout << "Error [Mesh::Bind]: Unknown Texture type!\n";
+        //     }
+        // }
 
         m_VertexArray.Bind();
     }

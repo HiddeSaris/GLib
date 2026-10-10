@@ -15,16 +15,16 @@ namespace GLib {
     class Mesh {
     public:
         //Mesh(std::vector<Texture> textures, float* vertices, uint32_t* indices);
-        Mesh(std::vector<std::shared_ptr<Texture>> textures, float* vertices, uint32_t vertex_count, uint32_t* indices, uint32_t index_count);
+        Mesh(/*std::vector<std::shared_ptr<Texture>> textures, */float* vertices, uint32_t vertex_count, uint32_t* indices, uint32_t index_count);
 
         void Bind(Shader& shader) const;
         //void Draw(Shader& shader, const glm::vec3& position) const;
 
         const VertexArray& GetVertexArray() const { return m_VertexArray; }
-        const std::vector<std::shared_ptr<Texture>>& GetTextures() const { return m_Textures; }
+        //const std::vector<std::shared_ptr<Texture>>& GetTextures() const { return m_Textures; }
         const BufferLayout& GetLayout() const { return m_Layout; }
 
-        bool IsTransparent() const { return m_IsTransparent; }
+        //bool IsTransparent() const { return m_IsTransparent; }
     private:
         BufferLayout m_Layout = BufferLayout({
             { "a_Position", GL_FLOAT, 3 },
@@ -35,8 +35,8 @@ namespace GLib {
         VertexArray m_VertexArray; 
         std::shared_ptr<VertexBuffer> m_VertexBuffer; 
         std::shared_ptr<IndexBuffer> m_IndexBuffer;
-        std::vector<std::shared_ptr<Texture>> m_Textures;
-        bool m_IsTransparent = false;
+        //std::vector<std::shared_ptr<Texture>> m_Textures;
+        //bool m_IsTransparent = false;
     };
 
 }

@@ -44,7 +44,7 @@ namespace GLib {
     }
 
     Texture::Texture(const std::string &path, TextureType type)
-        : m_Path(path), m_Type(type)
+        : m_Type(type)
     {
         int width, height, channels;
         stbi_set_flip_vertically_on_load(0);
@@ -106,8 +106,7 @@ namespace GLib {
         }
     }
 
-    Texture::Texture(std::string path, TextureType type, const PixelData& pixels) {
-        m_Path = path;
+    Texture::Texture(TextureType type, const PixelData& pixels) {
         m_Type = type;
         m_Width = pixels.Width;
         m_Height = pixels.Height;
@@ -141,7 +140,7 @@ namespace GLib {
 
     Texture::Texture(Texture&& other) noexcept
         : m_Specification(other.m_Specification), m_Type(other.m_Type),
-          m_Path(std::move(other.m_Path)), m_IsLoaded(other.m_IsLoaded),
+          m_IsLoaded(other.m_IsLoaded),
           m_IsTransparent(other.m_IsTransparent),
           m_Width(other.m_Width), m_Height(other.m_Height),
           m_RendererID(other.m_RendererID),
@@ -159,7 +158,6 @@ namespace GLib {
 
             m_Specification = other.m_Specification;
             m_Type = other.m_Type;
-            m_Path = std::move(other.m_Path);
             m_IsLoaded = other.m_IsLoaded;
             m_IsTransparent = other.m_IsTransparent;
             m_Width = other.m_Width;
@@ -196,11 +194,11 @@ namespace GLib {
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
     }
 
-    void Texture::LoadPixelData(const std::string& path, TextureType type, PixelData& out) {
+    void Texture::LoadPixelData(const std::filesystem::path& path, TextureType type, PixelData& out) {
         stbi_set_flip_vertically_on_load(0); // dont flip because of thread safety
         int width, height, channels;
         stbi_uc* data = nullptr;
-        data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+        data = stbi_load(path.string().c_str(), &width, &height, &channels, 0);
 
         if (!data) {
             std::cout << "ERROR [Texture::LoadPixelData]: Failed to load texture: " << path << std::endl;

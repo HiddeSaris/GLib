@@ -55,16 +55,16 @@ namespace GLib {
                 const Texture::PixelData& pixels = pending.future.get();
                 if (!pixels.IsLoaded) continue;
 
-                auto texture = std::make_shared<Texture>(pending.path, pending.type, pixels);
+                auto texture = std::make_shared<Texture>(pending.type, pixels);
                 m_TexturesLoaded[pending.path] = texture;
                 textures.push_back(texture);
             }
 
-            auto mesh = std::make_shared<Mesh>(textures, data.Vertices.data(), (uint32_t)(data.Vertices.size() * sizeof(float)), 
+            auto mesh = std::make_shared<Mesh>(data.Vertices.data(), (uint32_t)(data.Vertices.size() * sizeof(float)), 
                                                data.Indices.data(), (uint32_t)data.Indices.size());
 
-            if (mesh->IsTransparent())
-                m_IsTransparent = true;
+            // if (mesh->IsTransparent())
+            //     m_IsTransparent = true;
             
             m_Meshes.push_back(mesh);
         }

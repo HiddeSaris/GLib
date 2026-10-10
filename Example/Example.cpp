@@ -38,17 +38,24 @@ int main() {
     // entSphere.Add<GLib::RigidBodyComponent>(new btSphereShape(1), 1);
     // entSphere.Get<GLib::TransformComponent>().Translation = glm::vec3(0.0f, 10.0f, 0.0f);
 
-    auto entDir = scene->CreateEntity("DirLight");
-    entDir.Add<GLib::DirectionalLightComponent>(glm::vec3(0.6f, -1.0f, 0.4f), glm::vec3(0.9f, 0.7f, 0.3f), 10.0f);
+    // auto entDir = scene->CreateEntity("DirLight");
+    // entDir.Add<GLib::DirectionalLightComponent>(glm::vec3(0.6f, -1.0f, 0.4f), glm::vec3(0.9f, 0.7f, 0.3f), 10.0f);
+    GLib::AssetManager::InsertLoader<GLib::TextureLoader>();
+    GLib::AssetManager::InsertLoader<GLib::GltfLoader>();
+    GLib::Handle<GLib::Texture> tex = GLib::AssetManager::Load<GLib::Texture>("assets/textures/blending_transparent_window.png");
 
-    // auto entQuad = scene->CreateEntity("Quad");
-    // entQuad.Add<GLib::VertexArrayComponent>(GLib::Render::GetQuadVertexArray(), transparentTex);
-    // entQuad.Get<GLib::TransformComponent>().Translation = glm::vec3(1.0f);
+    auto entQuad = scene->CreateEntity("Quad");
+    entQuad.Add<GLib::VertexArrayComponent>(GLib::Render::GetQuadVertexArray(), tex);
+    entQuad.Get<GLib::TransformComponent>().Translation = glm::vec3(1.0f);
 
-    auto entSponza = scene->CreateEntity("Sponza");
-    entSponza.Add<GLib::ModelComponent>("assets/models/main1_sponza/NewSponza_Main_glTF_003.gltf");
-    entSponza.Get<GLib::TransformComponent>().Translation = glm::vec3(0.0f, 0.0f, 0.0f);
-    entSponza.Get<GLib::TransformComponent>().SetYawDeg(90.0f);
+    GLib::Handle<GLib::Gltf> gltf = GLib::AssetManager::Load<GLib::Gltf>("assets/models/flighthelmet/source/FlightHelmet/FlightHelmet.gltf");
+    auto entHelmet = scene->CreateEntity("helmet");
+    entHelmet.Add<GLib::GltfSceneComponent>(gltf);
+    
+    // auto entSponza = scene->CreateEntity("Sponza");
+    // entSponza.Add<GLib::ModelComponent>("assets/models/main1_sponza/NewSponza_Main_glTF_003.gltf");
+    // entSponza.Get<GLib::TransformComponent>().Translation = glm::vec3(0.0f, 0.0f, 0.0f);
+    // entSponza.Get<GLib::TransformComponent>().SetYawDeg(90.0f);
 
     GLib::FrameBuffer framebuffer = GLib::FrameBuffer(800, 600);
     //framebuffer.Bind();
@@ -155,7 +162,7 @@ int main() {
         
         ImGui::End();
 
-
+        GLib::AssetManager::Update();
         scene->UpdateSystems();
 
         //framebuffer.Unbind();

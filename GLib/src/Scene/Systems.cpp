@@ -42,7 +42,7 @@ namespace GLib {
             auto& [transform, model] = group.get<TransformComponent, ModelComponent>(entity);
 
             for (std::shared_ptr<Mesh> mesh : model.m_Model.GetMeshes()){
-                if (mesh->IsTransparent()){
+                if (false){//(mesh->IsTransparent()){
                     float d = glm::distance2(camTransform.Translation, transform.Translation);
                     transparentMeshes.push_back({mesh, transform.GetTransform(), d});
                 }
@@ -55,7 +55,9 @@ namespace GLib {
         auto groupVA = scene.GetRegistry().group<VertexArrayComponent>(entt::get<TransformComponent>);
         for (auto entity : groupVA){
             auto& [transform, vertexArray] = groupVA.get<TransformComponent, VertexArrayComponent>(entity);
-            Render::Submit(vertexArray.m_VertexArray, vertexArray.m_Texture, transform.GetTransform());
+            if (AssetManager::IsLoaded(vertexArray.m_Texture)){
+                Render::Submit(vertexArray.m_VertexArray, AssetManager::Get<Texture>(vertexArray.m_Texture), transform.GetTransform());
+            }
         }
 
         std::sort(transparentMeshes.begin(), transparentMeshes.end(),

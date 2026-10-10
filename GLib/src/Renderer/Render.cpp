@@ -321,9 +321,9 @@ namespace GLib {
     void Render::Submit(std::shared_ptr<Mesh> mesh, const glm::mat4 &transform) {
         UploadPBRUniforms(transform);
 
-        if (mesh->GetTextures().size() == 0){
-            s_Data.WhiteTexture->Bind(0);
-        }
+        // if (mesh->GetTextures().size() == 0){
+        //     s_Data.WhiteTexture->Bind(0);
+        // }
         
         mesh->Bind(*s_Data.PBRShader);
 
