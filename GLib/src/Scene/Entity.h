@@ -2,9 +2,9 @@
 
 #include "entt.hpp"
 
-#include "Scene.h"
-
 namespace GLib {
+
+    class Scene;
 
     class Entity {
     public:
@@ -34,12 +34,23 @@ namespace GLib {
         }
 
         template<typename T>
+        T& GetOrEmplace() {
+            return m_Scene->GetRegistry().get_or_emplace<T>(m_EntityHandle);
+        }
+
+        template<typename T>
         void Remove(){
             if (!Has<T>()){
                 std::cout << "Error [RemoveComponent]: Entity doesnt have component!" << std::endl;
             }
-            m_Scene->m_Registry.remove<T>(m_EntityHandle);
+            m_Scene->GetRegistry().remove<T>(m_EntityHandle);
         }
+
+        bool IsChildOf(Entity ent);
+        bool IsParentOf(Entity ent);
+        void SetParent(Entity parent);
+        void AddChild(Entity child);
+        Entity CreateChild(const std::string& name = std::string());
 
         entt::entity GetHandle() const { return m_EntityHandle; }
 

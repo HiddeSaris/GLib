@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <optional>
 #include <vector>
+#include <stack>
 
 #include <fastgltf/core.hpp>
 
@@ -15,10 +16,12 @@
 #include "Asset/AssetManager.h"
 #include "Asset/AssetLoader.h"
 #include "Renderer/Mesh.h"
+#include "Renderer/Material.h"
+#include "Scene/Scene.h"
 
 namespace GLib {
     
-    struct GltfMaterial {
+    /*struct GltfMaterial {
         glm::vec4 baseColor;
         std::optional<Handle<Texture>> baseColorTexture;
         
@@ -29,12 +32,12 @@ namespace GLib {
         std::optional<Handle<Texture>> normalTexture;
         
         std::optional<Handle<Texture>> ambientOcclusionTexture;
-    };
+    };*/
 
     struct GltfPrimitive {
         Handle<Mesh> mesh;
-        Handle<GltfMaterial> material;
-
+        std::optional<Handle<Material>> material;
+        std::string name;
     };
     
     struct GltfMesh {
@@ -62,7 +65,7 @@ namespace GLib {
         std::vector<Handle<GltfNode>> nodes;
 
         std::vector<Handle<GltfMesh>> meshes;
-        std::vector<Handle<GltfMaterial>> materials;
+        std::vector<Handle<Material>> materials;
     };
 
     class GltfLoader : public AssetLoader {
@@ -74,6 +77,7 @@ namespace GLib {
             int normalTexIndex = -1;
             int metallicRoughnessTexIndex = -1;
             int aoTexIndex = -1;
+            bool doubleSided = false;
         };
 
         struct TextureData {
@@ -87,9 +91,11 @@ namespace GLib {
         };
 
         struct MeshData {
+            std::string name;
             std::vector<float> vertices;
             std::vector<uint32_t> indices;
-            int materialIndex = -1;
+            std::optional<size_t> materialIndex;
+            MeshTopology topology = MeshTopology::Triangles;
         };
 
         struct NodeData {
@@ -132,5 +138,8 @@ namespace GLib {
         void LoadNodes(std::shared_ptr<fastgltf::Asset> asset, ImportedModel& model) const;
         void LoadScenes(std::shared_ptr<fastgltf::Asset> asset, ImportedModel& model) const;
     };
+
+    class Scene;
+    void GltfInitScene(Scene& scene, Entity root);
 
 }

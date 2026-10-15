@@ -22,6 +22,7 @@ int main() {
     
     scene->AddSystem<GLib::PhysicsSystem>();
     scene->AddSystem<GLib::RenderSystem>();
+    scene->AddSystem<GLib::GltfSystem>();
 
     bool cursorEnabled = true;
     auto transparentTex = std::make_shared<GLib::Texture>("assets/textures/blending_transparent_window.png", GLib::TextureType::Diffuse);

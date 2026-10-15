@@ -6,8 +6,6 @@
 
 namespace GLib {
 
-    //class Asset {};
-
     template<typename A>
     struct Handle {
         uint32_t index;

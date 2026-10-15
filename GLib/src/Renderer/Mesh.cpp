@@ -17,8 +17,8 @@ namespace GLib {
     //     m_VertexArray.SetIndexBuffer(m_IndexBuffer);
     // }
 
-    Mesh::Mesh(/*std::vector<std::shared_ptr<Texture>> textures, */float *vertices, uint32_t vertex_count, uint32_t *indices, uint32_t index_count)
-        //: m_Textures(textures)
+    Mesh::Mesh(float *vertices, uint32_t vertex_count, uint32_t *indices, uint32_t index_count, MeshTopology topology)
+        : m_Topology(topology)
     {
         m_VertexArray.Bind();
 
@@ -29,19 +29,11 @@ namespace GLib {
         m_IndexBuffer = std::make_shared<IndexBuffer>(indices, index_count);
         m_VertexArray.SetIndexBuffer(m_IndexBuffer);
         m_VertexArray.Unbind();
-
-        // for (auto& tex : m_Textures){
-        //     if (tex->IsTransparent()) {
-        //         m_IsTransparent = true;
-        //         break;
-        //     }
-        // }
         
     }
 
-    void Mesh::Bind(Shader &shader) const
+    void Mesh::Bind() const
     {
-        shader.Bind();
         // for (unsigned int i = 0; i < m_Textures.size(); i++) {
         //     if (!m_Textures[i]->IsLoaded())
         //         continue;

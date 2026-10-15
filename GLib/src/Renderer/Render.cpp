@@ -315,7 +315,7 @@ namespace GLib {
         vertexArray->Bind();
 
         uint32_t count = indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetCount();
-        glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr); 
     }
 
     void Render::Submit(std::shared_ptr<Mesh> mesh, const glm::mat4 &transform) {
@@ -325,7 +325,7 @@ namespace GLib {
         //     s_Data.WhiteTexture->Bind(0);
         // }
         
-        mesh->Bind(*s_Data.PBRShader);
+        mesh->Bind();
 
         glDrawElements(GL_TRIANGLES, mesh->GetVertexArray().GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);

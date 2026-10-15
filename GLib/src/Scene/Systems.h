@@ -3,7 +3,9 @@
 #include "Scene.h"
 #include "Entity.h"
 #include "Renderer/Render.h"
+#include "Asset/Loaders/GltfLoader.h"
 #include "Physics/Bullet.h"
+
 #include "btBulletDynamicsCommon.h"
 
 namespace GLib {
@@ -31,6 +33,21 @@ namespace GLib {
 
         int GetPriority() const override {
             return INT_MAX - 100;
+        }
+    };
+
+    struct GltfSystem : public System {
+        void OnUpdate(Scene& scene, double dt) override {
+            auto gltfgroup = scene.GetRegistry().group<GltfSceneComponent>();
+            for (entt::entity entity : gltfgroup) {
+                if (AssetManager::IsLoaded(gltfgroup.get<GltfSceneComponent>(entity).gltf)){
+                    GltfInitScene(scene, Entity(entity, GetActiveScene()));
+                }
+            }
+        }
+
+        int GetPriority() const override {
+            return 0;
         }
     };
 

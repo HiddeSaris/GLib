@@ -2,8 +2,9 @@
 
 #include "Renderer/Model.h"
 #include "Renderer/Camera.h"
+#include "Renderer/Material.h"
 #include "Asset/AssetManager.h"
-#include "Asset/Loaders/GltfLoader.h"
+#include "Scene/Entity.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -16,6 +17,9 @@
 
 namespace GLib {
 
+    class Entity;
+    class Scene;
+
     struct TagComponent
     {
         std::string Tag;
@@ -24,6 +28,26 @@ namespace GLib {
         TagComponent(const TagComponent&) = default;
         TagComponent(const std::string& tag)
             : Tag(tag) {}
+    };
+
+    struct ChildOf {
+        Entity parent;
+
+        ChildOf() = default;
+        ChildOf(const ChildOf&) = default;
+        ChildOf(Entity ent)
+            : parent(ent) {}
+    };
+
+    struct Children {
+        std::vector<Entity> children;
+
+        Children() = default;
+        Children(const Children&) = default;
+        Children(Entity ent)
+            : children({ent}) {}
+        Children(std::vector<Entity> ents)
+            : children(ents) {}
     };
 
     struct TransformComponent
@@ -50,27 +74,47 @@ namespace GLib {
             return glm::degrees(glm::eulerAngles(Rotation).z);
         }
 
-        void RotateDeg(glm::vec3 axis, float angle) {
-            Rotation = glm::angleAxis(glm::radians(angle), glm::normalize(axis)) * Rotation;
+        TransformComponent& SetTranslation(glm::vec3 translation) {
+            Translation = translation;
+            return *this;
         }
 
-        void SetEulerAnglesDeg(const glm::vec3& angles) {
-            Rotation = glm::quat(glm::radians(angles));
+        TransformComponent& SetRotation(glm::quat rotation) {
+            Rotation = rotation;
+            return *this;
         }
-        void SetPitchDeg(float pitch) {
+
+        TransformComponent& SetScale(glm::vec3 scale) {
+            Scale = scale;
+            return *this;
+        }
+
+        TransformComponent& RotateDeg(glm::vec3 axis, float angle) {
+            Rotation = glm::angleAxis(glm::radians(angle), glm::normalize(axis)) * Rotation;
+            return *this;
+        }
+
+        TransformComponent& SetEulerAnglesDeg(const glm::vec3& angles) {
+            Rotation = glm::quat(glm::radians(angles));
+            return *this;
+        }
+        TransformComponent& SetPitchDeg(float pitch) {
             glm::vec3 angles = glm::degrees(glm::eulerAngles(Rotation));
             angles.x = pitch;
             Rotation = glm::quat(glm::radians(angles));
+            return *this;
         }
-        void SetYawDeg(float yaw) {
+        TransformComponent& SetYawDeg(float yaw) {
             glm::vec3 angles = glm::degrees(glm::eulerAngles(Rotation));
             angles.y = yaw;
             Rotation = glm::quat(glm::radians(angles));
+            return *this;
         }
-        void SetRollDeg(float roll) {
+        TransformComponent& SetRollDeg(float roll) {
             glm::vec3 angles = glm::degrees(glm::eulerAngles(Rotation));
             angles.z = roll;
             Rotation = glm::quat(glm::radians(angles));
+            return *this;
         }
 
         glm::vec3 GetRotation() const {
@@ -94,9 +138,18 @@ namespace GLib {
         }
     };
 
+    struct Gltf;
     struct GltfSceneComponent {
         // tell the scene it should add the gltf scene as children of this entity when it is finished loading
         Handle<Gltf> gltf;
+    };
+
+    struct MeshComponent {
+        Handle<Mesh> mesh;
+
+        MeshComponent(const MeshComponent&) = default;
+        MeshComponent(const Handle<Mesh>& mesh)
+            : mesh(mesh) {}
     };
 
     struct ModelComponent {
@@ -107,6 +160,14 @@ namespace GLib {
             : m_Model(model) {}
         ModelComponent(const std::string& filepath)
             : m_Model(filepath) {}
+    };
+
+    struct MaterialComponent {
+        Handle<Material> material;
+
+        MaterialComponent(const MaterialComponent&) = default;
+        MaterialComponent(const Handle<Material>& material)
+            : material(material) {}
     };
 
     struct PointLightComponent {

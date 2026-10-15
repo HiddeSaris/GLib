@@ -45,6 +45,7 @@ namespace GLib {
             
             mat.metallic = pbr.metallicFactor;
             mat.roughness = pbr.roughnessFactor;
+            mat.doubleSided = material.doubleSided;
 
             if (pbr.baseColorTexture.has_value()) {
                 mat.albedoTexIndex = pbr.baseColorTexture->textureIndex;
@@ -101,10 +102,26 @@ namespace GLib {
             model.primitives.push_back({});
             for (const fastgltf::Primitive& prim : mesh.primitives) {
                 MeshData data;
-                if (prim.materialIndex.has_value()) {
-                    data.materialIndex = prim.materialIndex.value();
-                }
+                data.name = mesh.name;
+                data.materialIndex = prim.materialIndex;
                 
+                switch (prim.type) {
+                case fastgltf::PrimitiveType::Points:
+                    data.topology = MeshTopology::Points; break;
+                case fastgltf::PrimitiveType::Lines:
+                    data.topology = MeshTopology::Lines; break;
+                case fastgltf::PrimitiveType::LineLoop:
+                    data.topology = MeshTopology::LineLoop; break;
+                case fastgltf::PrimitiveType::LineStrip:
+                    data.topology = MeshTopology::LineStrip; break;
+                case fastgltf::PrimitiveType::Triangles:
+                    data.topology = MeshTopology::Triangles; break;
+                case fastgltf::PrimitiveType::TriangleStrip:
+                    data.topology = MeshTopology::TriangleStrip; break;
+                case fastgltf::PrimitiveType::TriangleFan:
+                    data.topology = MeshTopology::TriangleFan; break;
+                }
+
                 auto* posIt = prim.findAttribute("POSITION");
                 auto* normIt = prim.findAttribute("NORMAL");
                 auto* uvIt = prim.findAttribute("TEXCOORD_0");
@@ -266,7 +283,7 @@ namespace GLib {
         }
 
         for (auto& mat : imported->materials) {
-            auto data = std::make_shared<GltfMaterial>();
+            auto data = std::make_shared<Material>();
             
             data->baseColor = mat.baseColor;
             if (mat.albedoTexIndex != -1) {
@@ -274,6 +291,7 @@ namespace GLib {
             }
             data->metallic = mat.metallic;
             data->rougness = mat.roughness;
+            data->doubleSided = mat.doubleSided;
             if (mat.metallicRoughnessTexIndex != -1) {
                 data->metallicRoughnessTexture = textures[mat.metallicRoughnessTexIndex];
             }
@@ -283,18 +301,19 @@ namespace GLib {
             if (mat.aoTexIndex != -1) {
                 data->ambientOcclusionTexture = textures[mat.aoTexIndex];
             }
-            model->materials.push_back(AssetManager::Add<GltfMaterial>(data));
+            model->materials.push_back(AssetManager::Add<Material>(data));
         }
 
         for (int i = 0; i < imported->primitives.size(); i++) {
             auto mesh = std::make_shared<GltfMesh>();
             for (auto prim : imported->primitives[i]) {
                 GltfPrimitive primitive;
+                primitive.name = prim.name;
                 
-                auto m = std::make_shared<Mesh>(prim.vertices.data(), (uint32_t)prim.vertices.size(), prim.indices.data(), (uint32_t)prim.indices.size());
+                auto m = std::make_shared<Mesh>(prim.vertices.data(), (uint32_t)prim.vertices.size(), prim.indices.data(), (uint32_t)prim.indices.size(), prim.topology);
                 primitive.mesh = AssetManager::Add<Mesh>(m);
-                if (prim.materialIndex != -1) {
-                    primitive.material = model->materials[prim.materialIndex];
+                if (prim.materialIndex.has_value()) {
+                    primitive.material = model->materials[prim.materialIndex.value()];
                 }
                 mesh->primitives.push_back(primitive);
             }
@@ -331,5 +350,47 @@ namespace GLib {
         }
 
         return model;
+    }
+
+    void GltfInitScene(Scene &scene, Entity root) {
+        std::shared_ptr<Gltf> gltf = AssetManager::Get(root.Get<GltfSceneComponent>().gltf);
+
+        std::stack<std::pair<Entity, std::shared_ptr<GltfNode>>> needsProcessing;
+        for (Handle<GltfScene> sceneHandle : gltf->scenes) {
+            auto gltfScene = AssetManager::Get(sceneHandle);
+            for (Handle<GltfNode> nodeHandle : gltfScene->rootNodes) {
+                auto node = AssetManager::Get(nodeHandle);
+                Entity ent = scene.CreateEntity(node->name);
+                ent.SetParent(root);
+                needsProcessing.push({ent, node});
+            }
+        }
+
+        while(!needsProcessing.empty()) {
+            auto p = needsProcessing.top(); needsProcessing.pop();
+            Entity ent = p.first;
+            auto node = p.second;
+
+            ent.GetOrEmplace<TransformComponent>().SetTranslation(node->translation).SetRotation(node->rotation).SetScale(node->scale);
+            if (node->mesh.has_value()) {
+                auto gltfMesh = AssetManager::Get(node->mesh.value());
+                for (auto prim : gltfMesh->primitives) {
+                    Entity child = ent.CreateChild(prim.name);
+                    child.Add<MeshComponent>(prim.mesh);
+                    if (prim.material.has_value()) {
+                        child.Add<MaterialComponent>(prim.material.value());
+                    }
+                }
+            }
+
+            for (auto childHandle : node->children) {
+                auto child = AssetManager::Get(childHandle);
+                Entity entity = scene.CreateEntity(child->name);
+                ent.AddChild(entity);
+                needsProcessing.push({entity, child});
+            }
+        }
+        root.Remove<GltfSceneComponent>();
+
     }
 }

@@ -4,6 +4,7 @@
 
 #include "Physics/Bullet.h"
 #include "Components.h"
+#include "Entity.h"
 
 #include <chrono>
 

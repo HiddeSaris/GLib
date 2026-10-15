@@ -61,7 +61,7 @@ namespace GLib {
             }
 
             auto mesh = std::make_shared<Mesh>(data.Vertices.data(), (uint32_t)(data.Vertices.size() * sizeof(float)), 
-                                               data.Indices.data(), (uint32_t)data.Indices.size());
+                                               data.Indices.data(), (uint32_t)data.Indices.size(), MeshTopology::Triangles);
 
             // if (mesh->IsTransparent())
             //     m_IsTransparent = true;
