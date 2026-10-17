@@ -105,17 +105,17 @@ set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE_SAVED})
 add_library(GLib STATIC
     Window/Window.cpp
     Window/Input.cpp
-    Renderer/Buffer.cpp
-    Renderer/BufferLayout.cpp
+    Renderer/Mesh/Buffer.cpp
+    Renderer/Mesh/BufferLayout.cpp
     Renderer/Camera.cpp
     Renderer/PerspectiveCamera.cpp
     Renderer/Render.cpp
-    Renderer/Shader.cpp
-    Renderer/VertexArray.cpp
+    Renderer/Material/Shader.cpp
+    Renderer/Mesh/VertexArray.cpp
     Renderer/FrameBuffer.cpp
-    Renderer/Texture.cpp
-    Renderer/Model.cpp
-    Renderer/Mesh.cpp
+    Renderer/Material/Texture.cpp
+    Renderer/Mesh/Model.cpp
+    Renderer/Mesh/Mesh.cpp
     Scene/Scene.cpp
     Scene/Entity.cpp
     Scene/Systems.cpp

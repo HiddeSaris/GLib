@@ -5,6 +5,7 @@
 namespace GLib {
 
     class Scene;
+    struct TransformComponent;
 
     class Entity {
     public:
@@ -29,7 +30,7 @@ namespace GLib {
         }
 
         template<typename T>
-        bool Has(){
+        bool Has() const {
             return m_Scene->GetRegistry().all_of<T>(m_EntityHandle);
         }
 
@@ -52,7 +53,9 @@ namespace GLib {
         void AddChild(Entity child);
         Entity CreateChild(const std::string& name = std::string());
 
-        entt::entity GetHandle() const { return m_EntityHandle; }
+        TransformComponent GetWorldTransform();
+
+        entt::entity GetID() const { return m_EntityHandle; }
 
         operator bool() const { return m_EntityHandle != entt::null; }
     private:

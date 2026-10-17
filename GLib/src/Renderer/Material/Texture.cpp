@@ -11,8 +11,7 @@ namespace GLib {
 
     Texture::Texture(const TextureSpecification &specification)
         : m_Specification(specification), m_Width(m_Specification.Width), m_Height(m_Specification.Height),
-        m_DataFormat(m_Specification.DataFormat), m_InternalFormat(m_Specification.InternalFormat),
-        m_Type(m_Specification.Type)
+        m_DataFormat(m_Specification.DataFormat), m_InternalFormat(m_Specification.InternalFormat)
     {
         glGenTextures(1, &m_RendererID);
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
@@ -36,15 +35,9 @@ namespace GLib {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         
         CheckGLError("Texture");
-
-        if (m_Width == 1 && m_Height == 1){
-            uint32_t white = 0xffffffff;
-            SetData(&white, sizeof(uint32_t));
-        }
     }
 
-    Texture::Texture(const std::string &path, TextureType type)
-        : m_Type(type)
+    Texture::Texture(const std::string &path)
     {
         int width, height, channels;
         stbi_set_flip_vertically_on_load(0);
@@ -52,8 +45,6 @@ namespace GLib {
         data = stbi_load(path.c_str(), &width, &height, &channels, 0);
 
         if (data) {
-            m_IsLoaded = true;
-
             m_Width = width;
             m_Height = height;
 
@@ -73,16 +64,6 @@ namespace GLib {
             if (internalFormat == 0 || dataFormat == 0) {
                 std::cout << "ERROR [Texture]: Image format not supported\n";
                 exit(1);
-            }
-
-            if (channels == 4 && (type == TextureType::Diffuse || type == TextureType::Albedo)) {
-                for (int i = 0; i < width * height; i++) {
-                    uint8_t alpha = data[i * 4 + 3];
-                    if (alpha < 250) {  // small threshold avoids false positives from lossy compression artifacts
-                        m_IsTransparent = true;
-                        break;
-                    }
-                }
             }
 
             glGenTextures(1, &m_RendererID);
@@ -106,11 +87,9 @@ namespace GLib {
         }
     }
 
-    Texture::Texture(TextureType type, const PixelData& pixels) {
-        m_Type = type;
+    Texture::Texture(const PixelData& pixels) {
         m_Width = pixels.Width;
         m_Height = pixels.Height;
-        m_IsTransparent = pixels.IsTransparent;
         m_InternalFormat = pixels.Channels == 4 ? GL_RGBA8 : GL_RGB8;
         m_DataFormat = pixels.Channels == 4 ? GL_RGBA : GL_RGB;
 
@@ -128,8 +107,6 @@ namespace GLib {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Width, m_Height, m_DataFormat, GL_UNSIGNED_BYTE, pixels.Data.get());
-
-        m_IsLoaded = pixels.IsLoaded;
     }
 
     Texture::~Texture()
@@ -139,15 +116,12 @@ namespace GLib {
     }
 
     Texture::Texture(Texture&& other) noexcept
-        : m_Specification(other.m_Specification), m_Type(other.m_Type),
-          m_IsLoaded(other.m_IsLoaded),
-          m_IsTransparent(other.m_IsTransparent),
+        : m_Specification(other.m_Specification),
           m_Width(other.m_Width), m_Height(other.m_Height),
           m_RendererID(other.m_RendererID),
           m_InternalFormat(other.m_InternalFormat), m_DataFormat(other.m_DataFormat)
     {
         other.m_RendererID = 0;
-        other.m_IsLoaded = false;
     }
 
     Texture& Texture::operator=(Texture&& other) noexcept
@@ -157,9 +131,6 @@ namespace GLib {
                 glDeleteTextures(1, &m_RendererID);
 
             m_Specification = other.m_Specification;
-            m_Type = other.m_Type;
-            m_IsLoaded = other.m_IsLoaded;
-            m_IsTransparent = other.m_IsTransparent;
             m_Width = other.m_Width;
             m_Height = other.m_Height;
             m_RendererID = other.m_RendererID;
@@ -167,7 +138,6 @@ namespace GLib {
             m_DataFormat = other.m_DataFormat;
 
             other.m_RendererID = 0;
-            other.m_IsLoaded = false;
         }
         return *this;
     }
@@ -182,11 +152,6 @@ namespace GLib {
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Width, m_Height, m_DataFormat, GL_UNSIGNED_BYTE, data);
     }
-
-    // void Texture::AttachToFramebuffer()
-    // {
-    //     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_RendererID, 0);
-    // }
 
     void Texture::Bind(uint32_t slot) const
     {
@@ -220,5 +185,38 @@ namespace GLib {
         }
 
         out.IsLoaded = true;
+    }
+
+    std::shared_ptr<Texture> Texture::WhiteTexture() {
+        static std::shared_ptr<Texture> texture = [] {
+            auto tex = std::make_shared<Texture>(TextureSpecification());
+
+            uint8_t white[] = { 255, 255, 255, 255 };
+            tex->SetData(white, sizeof(white));
+            return tex;
+        }();
+        return texture;
+    }
+
+    std::shared_ptr<Texture> Texture::BlackTexture() {
+        static std::shared_ptr<Texture> texture = [] {
+            auto tex = std::make_shared<Texture>(TextureSpecification());
+
+            uint8_t black[] = { 0, 0, 0, 255 };
+            tex->SetData(black, sizeof(black));
+            return tex;
+        }();
+        return texture;
+    }
+
+    std::shared_ptr<Texture> Texture::DefaultNormalTexture() {
+        static std::shared_ptr<Texture> texture = [] {
+            auto tex = std::make_shared<Texture>(TextureSpecification());
+
+            uint8_t normal[] = { 128, 128, 255, 255 };
+            tex->SetData(normal, sizeof(normal));
+            return tex;
+        }();
+        return texture;
     }
 }

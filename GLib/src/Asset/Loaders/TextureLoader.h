@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Renderer/Texture.h"
+#include "Renderer/Material/Texture.h"
 #include "Asset/AssetLoader.h"
 
 namespace GLib {
@@ -15,7 +15,7 @@ namespace GLib {
 
         std::any InitAsset(std::any data) const override {
             auto pixels = std::any_cast<std::shared_ptr<Texture::PixelData>>(std::move(data));
-            return std::make_shared<Texture>(TextureType::Albedo, *pixels);
+            return std::make_shared<Texture>(*pixels);
         }
 
         std::vector<std::string> GetFileExtentions() const override {

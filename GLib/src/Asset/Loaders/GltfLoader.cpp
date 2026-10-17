@@ -75,7 +75,7 @@ namespace GLib {
                     data.isEmbedded = false;
                 },
                 [&](const fastgltf::sources::Array& arr) {
-                    data.pixels = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(arr.bytes.data()), static_cast<int>(arr.bytes.size()), &data.width, &data.height, &data.channels, 4);
+                    data.pixels = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(arr.bytes.data()), static_cast<int>(arr.bytes.size()), &data.width, &data.height, &data.channels, STBI_default);
                     data.isEmbedded = true;
                 },
                 [&](const fastgltf::sources::BufferView& bufView) {
@@ -84,7 +84,7 @@ namespace GLib {
                     std::visit(fastgltf::visitor{
                         [&](const fastgltf::sources::Array& arr) {
                             data.pixels = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(arr.bytes.data() + view.byteOffset),
-					                                            static_cast<int>(view.byteLength), &data.width, &data.height, &data.channels, 4);
+					                                            static_cast<int>(view.byteLength), &data.width, &data.height, &data.channels, STBI_default);
                         },
                         [](auto&) { /* unsupported buffer source */ }
                     }, buffer.data);
@@ -126,6 +126,10 @@ namespace GLib {
                 auto* normIt = prim.findAttribute("NORMAL");
                 auto* uvIt = prim.findAttribute("TEXCOORD_0");
                 auto* colorIt = prim.findAttribute("COLOR_0");
+
+                if (posIt == prim.attributes.end()) {
+                    std::cout << "Error [GltfLoader]: primitive '" << mesh.name << "'doest have position attributes!\n";
+                }
 
                 const auto& posAccessor   = asset->accessors[posIt->accessorIndex];
                 data.vertices.resize(posAccessor.count * 12); // 3(pos) + 3(norm) + 2(uv) + 4(color)
@@ -198,12 +202,18 @@ namespace GLib {
                         data.indices[i] = idx;
                     });
                 }
+                else {
+                    data.indices.resize(posAccessor.count);
+                    for (size_t i = 0; i < posAccessor.count; i++) {
+                        data.indices[i] = i;
+                    }
+                }
                 model.primitives[i].push_back(std::move(data));
             }
         }
     }
 
-    void GltfLoader::GetNodeTransform(const fastgltf::Node& node, glm::vec3& scale, glm::quat& rotation, glm::vec3& translation) const {
+    void GltfLoader::GetNodeTransform(const fastgltf::Node& node, glm::vec3& translation, glm::quat& rotation, glm::vec3& scale) const {
         if (auto* trs = std::get_if<fastgltf::TRS>(&node.transform)) {
             translation = glm::vec3(trs->translation[0], trs->translation[1], trs->translation[2]);
             rotation = glm::quat(trs->rotation[3], trs->rotation[0], trs->rotation[1], trs->rotation[2]); // glTF is x,y,z,w; glm ctor is w,x,y,z
@@ -271,7 +281,7 @@ namespace GLib {
         std::vector<Handle<Texture>> textures;
         for (auto& tex : imported->textures) {
             if (tex.isEmbedded) {
-                TextureSpecification spec(tex.width, tex.height, tex.channels == 4 ? GL_RGBA : GL_RGB, tex.channels == 4 ? GL_RGBA8 : GL_RGB8, TextureType::Albedo, true);
+                TextureSpecification spec(tex.width, tex.height, tex.channels == 4 ? GL_RGBA : GL_RGB, tex.channels == 4 ? GL_RGBA8 : GL_RGB8, true);
                 auto texture = std::make_shared<Texture>(spec);
                 texture->SetData(tex.pixels, tex.width * tex.height * tex.channels);
                 stbi_image_free(tex.pixels);
@@ -290,7 +300,7 @@ namespace GLib {
                 data->baseColorTexture = textures[mat.albedoTexIndex];
             }
             data->metallic = mat.metallic;
-            data->rougness = mat.roughness;
+            data->roughness = mat.roughness;
             data->doubleSided = mat.doubleSided;
             if (mat.metallicRoughnessTexIndex != -1) {
                 data->metallicRoughnessTexture = textures[mat.metallicRoughnessTexIndex];
@@ -310,7 +320,7 @@ namespace GLib {
                 GltfPrimitive primitive;
                 primitive.name = prim.name;
                 
-                auto m = std::make_shared<Mesh>(prim.vertices.data(), (uint32_t)prim.vertices.size(), prim.indices.data(), (uint32_t)prim.indices.size(), prim.topology);
+                auto m = std::make_shared<Mesh>(prim.vertices.data(), (uint32_t)(prim.vertices.size() * sizeof(float)), prim.indices.data(), (uint32_t)prim.indices.size(), prim.topology);
                 primitive.mesh = AssetManager::Add<Mesh>(m);
                 if (prim.materialIndex.has_value()) {
                     primitive.material = model->materials[prim.materialIndex.value()];
@@ -361,6 +371,7 @@ namespace GLib {
             for (Handle<GltfNode> nodeHandle : gltfScene->rootNodes) {
                 auto node = AssetManager::Get(nodeHandle);
                 Entity ent = scene.CreateEntity(node->name);
+                std::cout << "create entity: " << node->name << ", entity: " << (int)ent.GetID() << std::endl;
                 ent.SetParent(root);
                 needsProcessing.push({ent, node});
             }
@@ -371,11 +382,16 @@ namespace GLib {
             Entity ent = p.first;
             auto node = p.second;
 
-            ent.GetOrEmplace<TransformComponent>().SetTranslation(node->translation).SetRotation(node->rotation).SetScale(node->scale);
+            TransformComponent& t = ent.GetOrEmplace<TransformComponent>();
+            t.SetTranslation(node->translation).SetRotation(node->rotation).SetScale(node->scale);
+            
+            TransformComponent tr = ent.Get<TransformComponent>();
+            tr.GetTransform();
             if (node->mesh.has_value()) {
                 auto gltfMesh = AssetManager::Get(node->mesh.value());
                 for (auto prim : gltfMesh->primitives) {
                     Entity child = ent.CreateChild(prim.name);
+                    std::cout << "create child: mesh_" << prim.name << ", entity: " << (int)child.GetID() << std::endl;
                     child.Add<MeshComponent>(prim.mesh);
                     if (prim.material.has_value()) {
                         child.Add<MaterialComponent>(prim.material.value());
@@ -386,6 +402,7 @@ namespace GLib {
             for (auto childHandle : node->children) {
                 auto child = AssetManager::Get(childHandle);
                 Entity entity = scene.CreateEntity(child->name);
+                std::cout << "create entity: " << child->name << ", entity: " << (int)entity.GetID() << std::endl;
                 ent.AddChild(entity);
                 needsProcessing.push({entity, child});
             }

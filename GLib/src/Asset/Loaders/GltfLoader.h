@@ -15,8 +15,8 @@
 
 #include "Asset/AssetManager.h"
 #include "Asset/AssetLoader.h"
-#include "Renderer/Mesh.h"
-#include "Renderer/Material.h"
+#include "Renderer/Mesh/Mesh.h"
+#include "Renderer/Material/Material.h"
 #include "Scene/Scene.h"
 
 namespace GLib {
@@ -100,9 +100,9 @@ namespace GLib {
 
         struct NodeData {
             std::string name;
-            glm::vec3 translation;
-            glm::quat rotation;
-            glm::vec3 scale;
+            glm::vec3 translation{0.0f};
+            glm::quat rotation{1.0f, 0.0f, 0.0f, 0.0f};
+            glm::vec3 scale{1.0f};
             int meshIndex = -1;
             std::vector<uint32_t> children;
         };

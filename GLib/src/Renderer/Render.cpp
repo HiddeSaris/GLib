@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-#include "Texture.h"
-#include "VertexArray.h"
+#include "Material/Texture.h"
+#include "Mesh/VertexArray.h"
 #include "Window/Window.h"
 #include "Scene/Entity.h"
 
@@ -58,8 +58,6 @@ namespace GLib {
         std::vector<DirLight> DirLights;
         std::vector<SpotLight> SpotLights;
         
-        std::shared_ptr<Texture> WhiteTexture;
-
         glm::mat4 View = glm::mat4(1.0f);
         glm::mat4 Projection = glm::mat4(1.0f);
         glm::vec3 CamPosition = glm::vec3(0.0f);
@@ -169,8 +167,6 @@ namespace GLib {
             });
             s_Data.LineVA->AddVertexBuffer(linevb);
         }
-
-        s_Data.WhiteTexture = std::make_shared<Texture>(TextureSpecification());
         
         s_Data.ColorShader = std::make_shared<Shader>("assets/shaders/ColorShader.glsl");
         s_Data.TextureShader = std::make_shared<Shader>("assets/shaders/Texture.glsl");
@@ -285,7 +281,7 @@ namespace GLib {
     }
 
     void Render::RenderCube(const glm::vec3& position) {
-        Submit(s_Data.CubeVA, s_Data.WhiteTexture, glm::translate(glm::mat4(1.0f), position));
+        Submit(s_Data.CubeVA, Texture::WhiteTexture(), glm::translate(glm::mat4(1.0f), position));
     }
 
     void Render::SubmitPointLight(glm::vec3 pos, glm::vec3 color, float intensity) {
@@ -318,16 +314,13 @@ namespace GLib {
         glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr); 
     }
 
-    void Render::Submit(std::shared_ptr<Mesh> mesh, const glm::mat4 &transform) {
+    void Render::Submit(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material, const glm::mat4 &transform) {
         UploadPBRUniforms(transform);
-
-        // if (mesh->GetTextures().size() == 0){
-        //     s_Data.WhiteTexture->Bind(0);
-        // }
         
+        material->Bind(*s_Data.PBRShader);
         mesh->Bind();
 
-        glDrawElements(GL_TRIANGLES, mesh->GetVertexArray().GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0);
+        glDrawElements(MeshTopologyToGL(mesh->GetMeshTopology()), mesh->GetVertexArray().GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
         glActiveTexture(GL_TEXTURE0);
     }

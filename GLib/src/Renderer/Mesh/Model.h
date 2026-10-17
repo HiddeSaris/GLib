@@ -5,8 +5,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include "Shader.h"
-#include "Texture.h"
+#include "Renderer/Material/Shader.h"
+#include "Renderer/Material/Texture.h"
 #include "Mesh.h"
 
 #include <string>

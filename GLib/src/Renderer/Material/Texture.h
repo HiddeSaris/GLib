@@ -24,15 +24,14 @@ namespace GLib{
 
     struct TextureSpecification {
         TextureSpecification() = default;
-        TextureSpecification(uint32_t width, uint32_t height, uint32_t dataFormat, uint32_t internalFormat, TextureType type, bool generateMips)
-            : Width(width), Height(height), DataFormat(dataFormat), InternalFormat(internalFormat), Type(type), GenerateMips(generateMips)
+        TextureSpecification(uint32_t width, uint32_t height, uint32_t dataFormat, uint32_t internalFormat, bool generateMips)
+            : Width(width), Height(height), DataFormat(dataFormat), InternalFormat(internalFormat), GenerateMips(generateMips)
         {}
 
         uint32_t Width = 1;
         uint32_t Height = 1;
         uint32_t DataFormat = 0x1908; //GL_RGBA;
         uint32_t InternalFormat = 0x8058; //GL_RGBA8;
-        TextureType Type = TextureType::Diffuse;
         bool GenerateMips = true;
     };
 
@@ -46,8 +45,8 @@ namespace GLib{
         };
 
         Texture(const TextureSpecification& specification);
-        Texture(const std::string& path, TextureType type);
-        Texture(TextureType type, const PixelData& pixels);
+        Texture(const std::string& path);
+        Texture(const PixelData& pixels);
         ~Texture();
 
         Texture(const Texture&) = delete;
@@ -61,7 +60,6 @@ namespace GLib{
         uint32_t GetWidth() const { return m_Width; }
         uint32_t GetHeight() const { return m_Height; }
         uint32_t GetRendererID() const { return m_RendererID; }
-        TextureType GetType() const { return m_Type; }
 
         void SetData(void* data, uint32_t size);
         //void AttachToFramebuffer();
@@ -70,18 +68,15 @@ namespace GLib{
 
         static void LoadPixelData(const std::filesystem::path& path, TextureType type, PixelData& out);
 
-        bool IsLoaded() const { return m_IsLoaded; }
-        bool IsTransparent() const { return m_IsTransparent; }
+        static std::shared_ptr<Texture> WhiteTexture();
+        static std::shared_ptr<Texture> BlackTexture();
+        static std::shared_ptr<Texture> DefaultNormalTexture();
 
         bool operator==(const Texture& other) const {
             return m_RendererID == other.GetRendererID();
         }
     private:
         TextureSpecification m_Specification;
-        TextureType m_Type = TextureType::Albedo;
-
-        bool m_IsLoaded = false;
-        bool m_IsTransparent = false;
         uint32_t m_Width, m_Height;
         uint32_t m_RendererID;
         uint32_t m_InternalFormat, m_DataFormat;

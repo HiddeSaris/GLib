@@ -1,11 +1,11 @@
 #pragma once
 
-#include "VertexArray.h"
-#include "Shader.h"
+#include "Mesh/VertexArray.h"
+#include "Material/Shader.h"
 #include "Camera.h"
-#include "Texture.h"
-#include "Model.h"
-#include "Mesh.h"
+#include "Material/Texture.h"
+#include "Mesh/Model.h"
+#include "Mesh/Mesh.h"
 #include "Scene/Scene.h"
 
 #include <memory>
@@ -45,8 +45,8 @@ namespace GLib {
         static void SubmitSpotLight(glm::vec3 pos, glm::vec3 dir, glm::vec3 color, float intensity, float cutoff, float outerCutoff);
 
         static void Submit(std::shared_ptr<VertexArray> vertexArray, std::shared_ptr<Texture> texture, const glm::mat4 &transform, uint32_t indexCount = 0);
-        static void Submit(std::shared_ptr<Mesh> mesh, const glm::mat4& transform);
-        static void Submit(Model& model, const glm::mat4& transform);
+        static void Submit(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material, const glm::mat4& transform);
+        //static void Submit(Model& model, const glm::mat4& transform);
     private:
         static void UploadPBRUniforms(const glm::mat4& transform);
         static void InitImGui();

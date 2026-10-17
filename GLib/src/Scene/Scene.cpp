@@ -57,7 +57,7 @@ namespace GLib {
 
     void Scene::SetPrimaryCamera(Entity cam) {
         if (cam.Has<CameraComponent>()){
-            m_PrimaryCamera = cam.GetHandle();
+            m_PrimaryCamera = cam.GetID();
         }
         else {
             std::cout << "Warning [Scene::SetPrimaryCamera]: entity does not have a CameraComponent\n";

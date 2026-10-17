@@ -1,5 +1,7 @@
 #include "Systems.h"
 
+#include "Asset/AssetManager.h"
+
 #include "glad/glad.h"
 
 namespace GLib {
@@ -17,58 +19,62 @@ namespace GLib {
         }
         TransformComponent camTransform = camEntity.Get<TransformComponent>();
         
-        auto pointlightgroup = scene.GetRegistry().group<PointLightComponent>(entt::get<TransformComponent>);
+        auto pointlightgroup = scene.GetRegistry().group<PointLightComponent>();
         for (auto entity : pointlightgroup) {
-            glm::vec3 pos = pointlightgroup.get<TransformComponent>(entity).Translation;
+            auto worldTrans = Entity(entity, GetActiveScene()).GetWorldTransform();
             PointLightComponent light = pointlightgroup.get<PointLightComponent>(entity);
-            Render::SubmitPointLight(pos, light.Color, light.Intensity);
+            Render::SubmitPointLight(worldTrans.Translation, light.Color, light.Intensity);
         }
         auto dirlightgroup = scene.GetRegistry().group<DirectionalLightComponent>();
         for (auto entity : dirlightgroup) {
             DirectionalLightComponent light = dirlightgroup.get<DirectionalLightComponent>(entity);
             Render::SubmitDirLight(light.Direction, light.Color, light.Intensity);
         }
-        auto spotlightgroup = scene.GetRegistry().group<SpotLightComponent>(entt::get<TransformComponent>);
+        auto spotlightgroup = scene.GetRegistry().group<SpotLightComponent>();
         for (auto entity : spotlightgroup) {
-            glm::vec3 pos = spotlightgroup.get<TransformComponent>(entity).Translation;
+            auto worldTrans = Entity(entity, GetActiveScene()).GetWorldTransform();
             SpotLightComponent light = spotlightgroup.get<SpotLightComponent>(entity);
-            Render::SubmitSpotLight(pos, light.Direction, light.Color, light.Intensity, light.Cutoff, light.OuterCutoff);
+            Render::SubmitSpotLight(worldTrans.Translation, light.Direction, light.Color, light.Intensity, light.Cutoff, light.OuterCutoff);
         }
 
-        std::vector<std::tuple<std::shared_ptr<Mesh>, glm::mat4, float>> transparentMeshes;
+        std::vector<std::tuple<std::shared_ptr<Mesh>, std::shared_ptr<Material>, glm::mat4, float>> transparentMeshes;
 
-        auto group = scene.GetRegistry().group<ModelComponent>(entt::get<TransformComponent>);
+        auto group = scene.GetRegistry().group<MeshComponent, MaterialComponent>();
         for (auto entity : group){
-            auto& [transform, model] = group.get<TransformComponent, ModelComponent>(entity);
+            auto& [meshcomp, materialcomp] = group.get<MeshComponent, MaterialComponent>(entity);
+            if (!AssetManager::IsLoaded(meshcomp.mesh) || !AssetManager::IsLoaded(materialcomp.material)) continue;
 
-            for (std::shared_ptr<Mesh> mesh : model.m_Model.GetMeshes()){
-                if (false){//(mesh->IsTransparent()){
-                    float d = glm::distance2(camTransform.Translation, transform.Translation);
-                    transparentMeshes.push_back({mesh, transform.GetTransform(), d});
-                }
-                else {
-                    Render::Submit(mesh, transform.GetTransform());
-                }
+            auto mesh = AssetManager::Get(meshcomp.mesh);
+            auto material = AssetManager::Get(materialcomp.material);
+            auto worldTrans = Entity(entity, GetActiveScene()).GetWorldTransform();
+            
+            if (material->alphaMode == AlphaMode::Blend){
+                float d = glm::distance2(camTransform.Translation, worldTrans.Translation);
+                transparentMeshes.push_back({mesh, material, worldTrans.GetTransform(), d});
+            }
+            else {
+                Render::Submit(mesh, material, worldTrans.GetTransform());
             }
         }
 
-        auto groupVA = scene.GetRegistry().group<VertexArrayComponent>(entt::get<TransformComponent>);
+        auto groupVA = scene.GetRegistry().group<VertexArrayComponent>();
         for (auto entity : groupVA){
-            auto& [transform, vertexArray] = groupVA.get<TransformComponent, VertexArrayComponent>(entity);
+            auto& vertexArray = groupVA.get<VertexArrayComponent>(entity);
+            auto worldTrans = Entity(entity, GetActiveScene()).GetWorldTransform();
             if (AssetManager::IsLoaded(vertexArray.m_Texture)){
-                Render::Submit(vertexArray.m_VertexArray, AssetManager::Get<Texture>(vertexArray.m_Texture), transform.GetTransform());
+                Render::Submit(vertexArray.m_VertexArray, AssetManager::Get<Texture>(vertexArray.m_Texture), worldTrans.GetTransform());
             }
         }
 
         std::sort(transparentMeshes.begin(), transparentMeshes.end(),
         [](auto& a, auto& b){ 
-            return std::get<2>(a) > std::get<2>(b); 
+            return std::get<3>(a) > std::get<3>(b); 
         });
 
         glDepthMask(GL_FALSE);
 
-        for (auto& [mesh, transform, d] : transparentMeshes){
-            Render::Submit(mesh, transform);
+        for (auto& [mesh, material, transform, d] : transparentMeshes){
+            Render::Submit(mesh, material, transform);
         }
 
         glDepthMask(GL_TRUE);

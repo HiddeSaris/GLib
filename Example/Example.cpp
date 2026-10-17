@@ -17,7 +17,7 @@ int main() {
     CameraEntity.Add<GLib::CameraComponent>().m_Camera.SetPerspective(90, 0.01f, 1000.0f);
     //CameraEntity.Add<GLib::SpotLightComponent>(glm::vec3(1.0f), glm::vec3(0.6f, 0.8f, 1.0f), 10.0f);
     CameraEntity.Get<GLib::TransformComponent>().Translation = glm::vec3(0.0f, 1.0f, 2.0f);
-    const float default_cam_speed = 2.5f;
+    const float default_cam_speed = 0.5f;
 
     
     scene->AddSystem<GLib::PhysicsSystem>();
@@ -25,8 +25,11 @@ int main() {
     scene->AddSystem<GLib::GltfSystem>();
 
     bool cursorEnabled = true;
-    auto transparentTex = std::make_shared<GLib::Texture>("assets/textures/blending_transparent_window.png", GLib::TextureType::Diffuse);
+    auto transparentTex = std::make_shared<GLib::Texture>("assets/textures/blending_transparent_window.png");
     
+    GLib::AssetManager::InsertLoader<GLib::TextureLoader>();
+    GLib::AssetManager::InsertLoader<GLib::GltfLoader>();
+
     // auto entCube = scene->CreateEntity("Cube");
     // entCube.Add<GLib::ModelComponent>("assets/models/cube/cube.obj");
     // entCube.Get<GLib::TransformComponent>().Translation = glm::vec3(0.0f, -0.2f, 0.0f);
@@ -39,10 +42,9 @@ int main() {
     // entSphere.Add<GLib::RigidBodyComponent>(new btSphereShape(1), 1);
     // entSphere.Get<GLib::TransformComponent>().Translation = glm::vec3(0.0f, 10.0f, 0.0f);
 
-    // auto entDir = scene->CreateEntity("DirLight");
-    // entDir.Add<GLib::DirectionalLightComponent>(glm::vec3(0.6f, -1.0f, 0.4f), glm::vec3(0.9f, 0.7f, 0.3f), 10.0f);
-    GLib::AssetManager::InsertLoader<GLib::TextureLoader>();
-    GLib::AssetManager::InsertLoader<GLib::GltfLoader>();
+    auto entDir = scene->CreateEntity("DirLight");
+    entDir.Add<GLib::DirectionalLightComponent>(glm::vec3(0.6f, -1.0f, 0.4f), glm::vec3(0.9f, 0.7f, 0.3f), 10.0f);
+
     GLib::Handle<GLib::Texture> tex = GLib::AssetManager::Load<GLib::Texture>("assets/textures/blending_transparent_window.png");
 
     auto entQuad = scene->CreateEntity("Quad");

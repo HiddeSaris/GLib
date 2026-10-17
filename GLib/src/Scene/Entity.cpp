@@ -15,7 +15,7 @@ namespace GLib {
                 return false;
             }
             
-            if (cur.Get<ChildOf>().parent.GetHandle() == ent.GetHandle()) {
+            if (cur.Get<ChildOf>().parent.GetID() == ent.GetID()) {
                 return true;
             }
             cur = cur.Get<ChildOf>().parent;
@@ -32,14 +32,14 @@ namespace GLib {
         if (!parent || !*this) {
             std::cout << "Warning [Entity::SetParent]: Not a valid entity.\n";
         }
-        if (parent.GetHandle() == GetHandle()) {
+        if (parent.GetID() == GetID()) {
             std::cout << "Warning [Entity::SetParent]: Parent and child are the same.\n";
         }
         if (parent.IsChildOf(*this)) {
             std::cout << "Warning [Entity::SetParent]: Parent is a child of Entity\n";
         }
 
-        auto childOf = GetOrEmplace<ChildOf>();
+        auto& childOf = GetOrEmplace<ChildOf>();
         Entity oldParent = childOf.parent;
         if (oldParent && oldParent.Has<Children>()) {
             auto& children = oldParent.Get<Children>().children;
@@ -58,5 +58,25 @@ namespace GLib {
         Entity child = m_Scene->CreateEntity(name);
         AddChild(child);
         return child;
+    }
+    
+    TransformComponent Entity::GetWorldTransform() {
+        if (!Has<TransformComponent>()) {
+            std::cout << "Error [Entity::GetWorldTransform]: Entity doesnt have a TransformComponent!\n";
+            return TransformComponent();
+        }
+
+        Entity cur = *this;
+        TransformComponent trans = Get<TransformComponent>();
+        while(cur.Has<ChildOf>() && cur.Get<ChildOf>().parent) {
+            cur = cur.Get<ChildOf>().parent;
+            if (!cur.Has<TransformComponent>()) break;
+            const TransformComponent& curTrans = cur.Get<TransformComponent>();
+            trans.Translation = curTrans.Translation + curTrans.Rotation * (curTrans.Scale * trans.Translation);
+            trans.Rotation = curTrans.Rotation * trans.Rotation;
+            trans.Scale = curTrans.Scale * trans.Scale;
+        }
+
+        return trans;
     }
 };

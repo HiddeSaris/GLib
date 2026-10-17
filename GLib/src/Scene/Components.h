@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Renderer/Model.h"
+#include "Renderer/Mesh/Model.h"
 #include "Renderer/Camera.h"
-#include "Renderer/Material.h"
+#include "Renderer/Material/Material.h"
 #include "Asset/AssetManager.h"
 #include "Scene/Entity.h"
 
@@ -58,7 +58,7 @@ namespace GLib {
         
         TransformComponent() = default;
         TransformComponent(const TransformComponent&) = default;
-        TransformComponent(const glm::vec3 translation)
+        TransformComponent(const glm::vec3& translation)
             : Translation(translation) {}
 
         glm::vec3 GetEulerAnglesDeg() const {
@@ -74,17 +74,17 @@ namespace GLib {
             return glm::degrees(glm::eulerAngles(Rotation).z);
         }
 
-        TransformComponent& SetTranslation(glm::vec3 translation) {
+        TransformComponent& SetTranslation(const glm::vec3& translation) {
             Translation = translation;
             return *this;
         }
 
-        TransformComponent& SetRotation(glm::quat rotation) {
+        TransformComponent& SetRotation(const glm::quat& rotation) {
             Rotation = rotation;
             return *this;
         }
 
-        TransformComponent& SetScale(glm::vec3 scale) {
+        TransformComponent& SetScale(const glm::vec3& scale) {
             Scale = scale;
             return *this;
         }

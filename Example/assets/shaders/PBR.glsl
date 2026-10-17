@@ -36,11 +36,15 @@ in vec2 v_TexCoord;
 // in vec4 v_Color;
 
 // material textures
+uniform vec4 u_Albedo;
+uniform float u_Metallic;
+uniform float u_Roughness;
 uniform sampler2D u_AlbedoMap;
 uniform sampler2D u_NormalMap;
-uniform sampler2D u_MetallicMap;
-uniform sampler2D u_RoughnessMap;
+uniform sampler2D u_MetallicRoughnessMap;
 uniform sampler2D u_AOMap;
+
+uniform float u_AlphaCutOff;
 
 uniform vec3 u_CamPos;
 
@@ -166,13 +170,13 @@ vec3 CalcSpotLightRadiance(SpotLight light) {
 }
 
 void main() {
-    vec3 albedo = pow(texture(u_AlbedoMap, v_TexCoord).rgb, vec3(2.2));
+    vec3 albedo = pow(texture(u_AlbedoMap, v_TexCoord).rgb * u_Albedo.rgb, vec3(2.2));
     float alpha = texture(u_AlbedoMap, v_TexCoord).a;
-    if (alpha == 0)
+    if (alpha <= u_AlphaCutOff)
         discard;
     vec3 normal = GetNormalFromMap();
-    float metallic = texture(u_MetallicMap, v_TexCoord).r;
-    float roughness = texture(u_RoughnessMap, v_TexCoord).r;
+    float metallic = texture(u_MetallicRoughnessMap, v_TexCoord).r * u_Metallic;
+    float roughness = texture(u_MetallicRoughnessMap, v_TexCoord).g * u_Roughness;
     float ambient_occlusion = texture(u_AOMap, v_TexCoord).r;
 
     vec3 N = normalize(v_Normal);

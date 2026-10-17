@@ -1,12 +1,11 @@
 #pragma once
 
-#include "Texture.h"
-#include "Shader.h"
-#include "VertexArray.h"
-#include "Buffer.h"
-
 #include <vector>
 
+#include "Renderer/Material/Texture.h"
+#include "Renderer/Material/Shader.h"
+#include "VertexArray.h"
+#include "Buffer.h"
 
 namespace GLib {
     
@@ -22,15 +21,18 @@ namespace GLib {
         TriangleFan,
     };
 
+    unsigned int MeshTopologyToGL(MeshTopology topology);
+
     class Mesh {
     public:
         //Mesh(std::vector<Texture> textures, float* vertices, uint32_t* indices);
-        Mesh(float* vertices, uint32_t vertex_count, uint32_t* indices, uint32_t index_count, MeshTopology topology);
+        Mesh(float* vertices, uint32_t vertex_bytes, uint32_t* indices, uint32_t index_count, MeshTopology topology);
 
         void Bind() const;
 
         const VertexArray& GetVertexArray() const { return m_VertexArray; }
         const BufferLayout& GetLayout() const { return m_Layout; }
+        MeshTopology GetMeshTopology() const { return m_Topology; }
 
     private:
         BufferLayout m_Layout = BufferLayout({

@@ -6,6 +6,27 @@
 
 namespace GLib {
 
+    unsigned int MeshTopologyToGL(MeshTopology topology) {
+        switch (topology) {
+        case MeshTopology::Points:
+            return GL_POINTS;
+        case MeshTopology::Lines:
+            return GL_LINES;
+        case MeshTopology::LineLoop:
+            return GL_LINE_LOOP;
+        case MeshTopology::LineStrip:
+            return GL_LINE_STRIP;
+        case MeshTopology::Triangles:
+            return GL_TRIANGLES;
+        case MeshTopology::TriangleStrip:
+            return GL_TRIANGLE_STRIP;
+        case MeshTopology::TriangleFan:
+            return GL_TRIANGLE_FAN;
+        default:
+            return GL_TRIANGLES;
+        }
+    }
+
     // Mesh::Mesh(std::vector<Texture> textures, float *vertices, uint32_t *indices)
     //     : m_Textures(textures),
     //     m_VertexBuffer(std::make_shared<VertexBuffer>(vertices, sizeof(vertices))),
@@ -17,12 +38,12 @@ namespace GLib {
     //     m_VertexArray.SetIndexBuffer(m_IndexBuffer);
     // }
 
-    Mesh::Mesh(float *vertices, uint32_t vertex_count, uint32_t *indices, uint32_t index_count, MeshTopology topology)
+    Mesh::Mesh(float *vertices, uint32_t vertex_bytes, uint32_t *indices, uint32_t index_count, MeshTopology topology)
         : m_Topology(topology)
     {
         m_VertexArray.Bind();
 
-        m_VertexBuffer = std::make_shared<VertexBuffer>(vertices, vertex_count); 
+        m_VertexBuffer = std::make_shared<VertexBuffer>(vertices, vertex_bytes); 
         m_VertexBuffer->SetLayout(m_Layout);
         m_VertexArray.AddVertexBuffer(m_VertexBuffer);
 

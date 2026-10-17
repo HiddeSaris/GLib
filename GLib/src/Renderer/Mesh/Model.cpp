@@ -55,7 +55,7 @@ namespace GLib {
                 const Texture::PixelData& pixels = pending.future.get();
                 if (!pixels.IsLoaded) continue;
 
-                auto texture = std::make_shared<Texture>(pending.type, pixels);
+                auto texture = std::make_shared<Texture>(pixels);
                 m_TexturesLoaded[pending.path] = texture;
                 textures.push_back(texture);
             }
