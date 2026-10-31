@@ -1,3 +1,4 @@
+#include "App/App.h"
 #include "Window/Window.h"
 #include "Window/Input.h"
 #include "Window/Keycodes.h"

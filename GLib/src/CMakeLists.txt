@@ -124,6 +124,7 @@ add_library(GLib STATIC
     Asset/AssetLoader.cpp
     Physics/Bullet.cpp
     Asset/Loaders/GltfLoader.cpp
+    App/App.cpp
 )
 
 target_include_directories(GLib

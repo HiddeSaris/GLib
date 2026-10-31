@@ -27,7 +27,8 @@ namespace GLib {
         glm::vec3 Dir;
         glm::vec3 Col;
         float Intensity;
-    };struct SpotLight {
+    };
+    struct SpotLight {
         glm::vec3 Pos;
         glm::vec3 Dir;
         glm::vec3 Col;
@@ -38,8 +39,8 @@ namespace GLib {
 
     struct RenderData 
     {
-        std::shared_ptr<Scene> ActiveScene;
-        
+        App* App;
+
         std::chrono::steady_clock::time_point BeginFrameTime;
         double DeltaTime;
 
@@ -65,7 +66,7 @@ namespace GLib {
 
     static RenderData s_Data;
 
-    void Render::Init() {
+    void Render::Init(App* app) {
         InitImGui();
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
@@ -77,6 +78,8 @@ namespace GLib {
         glEnable(GL_CULL_FACE);
 
         glLineWidth(1);
+
+        s_Data.App = app;
 
         s_Data.DeltaTime = 0.016;
 
@@ -176,29 +179,24 @@ namespace GLib {
     }
 
     void Render::BeginFrame() {
-        Entity cam = s_Data.ActiveScene->GetPrimaryCamera();
-        TransformComponent transform = cam.Get<TransformComponent>(); //s_Data.ActiveScene->GetRegistry().get<TransformComponent>(cam);
-        CameraComponent camera = cam.Get<CameraComponent>(); //s_Data.ActiveScene->GetRegistry().get<CameraComponent>(cam);
+        Entity cam = s_Data.App->GetScene().GetPrimaryCamera();
+        if (cam) {
+            s_Data.BeginFrameTime = std::chrono::steady_clock::now();
 
-        BeginFrame(camera.m_Camera, transform.GetTransform(), transform.Translation);
-    }
+            TransformComponent transform = cam.Get<TransformComponent>(); //s_Data.ActiveScene->GetRegistry().get<TransformComponent>(cam);
+            CameraComponent camera = cam.Get<CameraComponent>(); //s_Data.ActiveScene->GetRegistry().get<CameraComponent>(cam);
 
-    void Render::BeginFrame(Camera camera, glm::mat4 transform, glm::vec3 camPos) {
-        BeginFrame(glm::inverse(transform), camera.GetProjection(), camPos);
-    }
+            s_Data.View = glm::inverse(transform.GetTransform());
+            s_Data.Projection = camera.m_Camera.GetProjection();
+            s_Data.CamPosition = transform.Translation;
+        }
 
-    void Render::BeginFrame(glm::mat4 view, glm::mat4 projection, glm::vec3 camPos) {
-        s_Data.BeginFrameTime = std::chrono::steady_clock::now();
-        Clear();
-        s_Data.View = view;
-        s_Data.Projection = projection;
-        s_Data.CamPosition = camPos;
         ImGuiNewFrame();
     }
 
     void Render::EndFrame() {
-        ImGuiEndFrame();
-        Window::Update();
+        if (!Window::IsClosed())
+            ImGuiEndFrame();
         
         std::chrono::steady_clock::time_point time = std::chrono::steady_clock::now();
         std::chrono::duration<double> dt = time - s_Data.BeginFrameTime;
@@ -213,13 +211,12 @@ namespace GLib {
         glClearColor(r, g, b, a);
     }
 
-    void Render::Clear()
-    {
+    void Render::Clear() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
     void Render::OnViewportResize(uint32_t width, uint32_t height) {
-        s_Data.ActiveScene->OnViewportResize(width, height);
+        s_Data.App->GetScene().OnViewportResize(width, height);
     }
 
     std::shared_ptr<VertexArray> Render::GetQuadVertexArray() {
@@ -413,16 +410,4 @@ namespace GLib {
         }
     }
 
-
-    std::shared_ptr<Scene> CreateScene() {
-        return s_Data.ActiveScene = std::make_shared<Scene>();
-    }
-
-    void SetActiveScene(std::shared_ptr<Scene> scene) {
-        s_Data.ActiveScene = scene;
-    }
-
-    std::shared_ptr<Scene> GetActiveScene() {
-        return s_Data.ActiveScene;
-    }
 }

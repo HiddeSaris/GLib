@@ -5,7 +5,7 @@
 
 namespace GLib {
 
-    Entity::Entity(entt::entity handle, std::shared_ptr<Scene> scene)
+    Entity::Entity(entt::entity handle, Scene* scene)
         : m_EntityHandle(handle), m_Scene(scene) { }
 
     bool Entity::IsChildOf(Entity ent) {
@@ -39,14 +39,19 @@ namespace GLib {
             std::cout << "Warning [Entity::SetParent]: Parent is a child of Entity\n";
         }
 
-        auto& childOf = GetOrEmplace<ChildOf>();
-        Entity oldParent = childOf.parent;
-        if (oldParent && oldParent.Has<Children>()) {
-            auto& children = oldParent.Get<Children>().children;
-            children.erase(std::find(children.begin(), children.end(), *this));
+        if (Has<ChildOf>()){
+            auto& childOf = Get<ChildOf>();
+            Entity oldParent = childOf.parent;
+            if (oldParent && oldParent.Has<Children>()) {
+                auto& children = oldParent.Get<Children>().children;
+                children.erase(std::find(children.begin(), children.end(), *this));
+            }
+            childOf.parent = parent;
+        }
+        else {
+            Add<ChildOf>(parent);
         }
 
-        childOf.parent = parent;
         parent.GetOrEmplace<Children>().children.push_back(*this);
     }
 

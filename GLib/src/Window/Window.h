@@ -8,21 +8,15 @@ struct GLFWwindow;
 namespace GLib {
     class Window {
     public:
-        static void Init(int width, int height, std::string title, bool start_fullscreen = false);
+        static void Init();
         static void Close();
-
+        
         static void Update();
         static void ToggleFullscreen();
-        static void SetVSync(bool enabled);
         static void HideCursor();
         static void DisableCursor();
         static void ShowCursor();
         static void ConfineCursor();
-
-        static double GetTime();
-
-        // static void ImGuiNewFrame();
-        // static void ImGuiEndFrame();
         
         static int GetWidth() { return s_Width; }
         static int GetHeight() { return s_Height; }
@@ -30,7 +24,15 @@ namespace GLib {
         static int GetViewportHeight() { return s_ViewportHeight; }
         static std::string GetTitle() { return s_Title; }
         static GLFWwindow* GetWindowID() { return s_Window; }
+        static double GetTime();
         static bool IsFullscreen();
+        static bool IsClosed() { return !s_Initialized; }
+        static bool ShouldClose();
+
+        static void SetSize(int width, int height);
+        static void SetPos(int x, int y);
+        static void SetTitle(const std::string& title);
+        static void SetVSync(bool enabled);
     private:
         static int s_Width;
         static int s_Height;
@@ -44,10 +46,11 @@ namespace GLib {
         static int s_WindowedPosY;
         static std::string s_Title;
         static GLFWwindow* s_Window;
+        static bool s_Initialized;
         static bool s_VSyncEnabled;
     private:
-        static void CreateWindow(bool fullscreen);
-        static void InitGLFW(bool start_fullscreen);
+        static void CreateWindow();
+        static void InitGLFW();
         static void InitOpenGL();
         // static void InitImGui();
         static void DestructImGui();

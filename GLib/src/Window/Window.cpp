@@ -14,8 +14,8 @@ namespace GLib {
     static int s_GLFWWindowCount = 0;
 
     bool Window::s_VSyncEnabled = false;
-    int Window::s_Width = 0;
-    int Window::s_Height = 0;
+    int Window::s_Width = 1600;
+    int Window::s_Height = 900;
     int Window::s_PosX = 0;
     int Window::s_PosY = 0;
     int Window::s_ViewportWidth = 0;
@@ -24,40 +24,35 @@ namespace GLib {
     int Window::s_WindowedHeight = 0;
     int Window::s_WindowedPosX = 0;
     int Window::s_WindowedPosY = 0;
-    std::string Window::s_Title = "";
+    std::string Window::s_Title = "GLib Game Engine";
     GLFWwindow* Window::s_Window = nullptr;
+    bool Window::s_Initialized = false;
 
-    void Window::Init(int width, int height, std::string title, bool start_fullscreen)
-    {
-        s_Width = width;
-        s_Height = height;
-        s_Title = title;
-
-        InitGLFW(start_fullscreen);
+    void Window::Init() {
+        InitGLFW();
         InitOpenGL();
 
-        //InitImGui();
+        s_Initialized = true;
     }
 
     void Window::Close()
     {
         glfwDestroyWindow(s_Window);
         s_GLFWWindowCount--;
-
+        s_Initialized = false;
+        
         if (s_GLFWWindowCount == 0){
             glfwTerminate();
 
-            //ImGuiEndFrame();
             DestructImGui();
         }
     }
 
     void Window::Update()
     {
-        Input::Update();
-        if (glfwWindowShouldClose(s_Window)) {
-            exit(0);
-        }
+        if (!IsClosed())
+            Input::Update();
+        
         glfwSwapBuffers(s_Window);
     }
 
@@ -84,13 +79,13 @@ namespace GLib {
         glViewport(0, 0, s_ViewportWidth, s_ViewportHeight);
     }
 
-    void Window::CreateWindow(bool fullscreen)
+    void Window::CreateWindow()
     {
         GLFWmonitor* monitor = NULL;
         int width = s_Width;
         int height = s_Height;
 
-        if (fullscreen) {
+        if (false) {
             int mon_count = -1;
             GLFWmonitor** mon_list = glfwGetMonitors(&mon_count);
 
@@ -129,7 +124,7 @@ namespace GLib {
         glfwGetFramebufferSize(s_Window, &s_ViewportWidth, &s_ViewportHeight);
     }
 
-    void Window::InitGLFW(bool start_fullscreen)
+    void Window::InitGLFW()
     {
         if (s_GLFWWindowCount == 0) {
             s_GLFWWindowCount++;
@@ -144,7 +139,7 @@ namespace GLib {
             exit(1);
         }
         
-        CreateWindow(start_fullscreen);
+        CreateWindow();
         
         Input::Init(s_Window);
 
@@ -162,29 +157,7 @@ namespace GLib {
         }  
 
         glViewport(0, 0, s_ViewportWidth, s_ViewportHeight);
-        
-        Render::Init();
     }
-
-    // void Window::InitImGui()
-    // {
-    //     // Setup Dear ImGui context
-    //     IMGUI_CHECKVERSION();
-    //     ImGui::CreateContext();
-    //     ImGuiIO& io = ImGui::GetIO();
-    //     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    //     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-    //     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    //     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-    //     //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
-	// 	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
-
-    //     // ImGuiViewport* viewport = ImGui::GetWindowViewport();
-    //     // viewport->Flags |= ImGuiViewportFlags_TopMost;
-    //     // Setup Platform/Renderer backends
-    //     ImGui_ImplGlfw_InitForOpenGL(s_Window, true);
-    //     ImGui_ImplOpenGL3_Init();
-    // }
 
     void Window::DestructImGui()
     {
@@ -204,15 +177,6 @@ namespace GLib {
     void Window::ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
         Input::ScrollX = xoffset;
         Input::ScrollY = yoffset;
-    }
-
-    void Window::SetVSync(bool enabled) {
-		if (enabled)
-			glfwSwapInterval(1);
-		else
-			glfwSwapInterval(0);
-        
-        s_VSyncEnabled = enabled;
     }
 
     void Window::HideCursor() {
@@ -248,33 +212,45 @@ namespace GLib {
         return glfwGetTime();
     }
 
-    // void Window::ImGuiNewFrame()
-    // {
-    //     ImGui_ImplOpenGL3_NewFrame();
-    //     ImGui_ImplGlfw_NewFrame();
-    //     ImGui::NewFrame();
-    // }
-
-    // void Window::ImGuiEndFrame()
-    // {
-    //     ImGuiIO& io = ImGui::GetIO();
-    //     io.DisplaySize = ImVec2((float)s_Width, (float)s_Height);
-
-    //     // Rendering
-    //     ImGui::Render();
-    //     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-    //     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-    //         GLFWwindow* backup_current_context = glfwGetCurrentContext();
-    //         ImGui::UpdatePlatformWindows();
-    //         ImGui::RenderPlatformWindowsDefault();
-    //         glfwMakeContextCurrent(backup_current_context);
-    //     }
-    // }
-
     bool Window::IsFullscreen()
     {
         return glfwGetWindowMonitor(s_Window) != nullptr;
+    }
+
+    bool Window::ShouldClose() {
+        return glfwWindowShouldClose(s_Window) || IsClosed();
+    }
+
+    void Window::SetSize(int width, int height) {
+        if (s_Initialized) {
+            glfwSetWindowSize(s_Window, width, height);
+        }
+        s_Width = width;
+        s_Height = height;
+    }
+
+    void Window::SetPos(int x, int y) {
+        if (s_Initialized) {
+            glfwSetWindowPos(s_Window, x, y);
+        }
+        s_PosX = x;
+        s_PosY = y;
+    }
+
+    void Window::SetTitle(const std::string &title) {
+        if (s_Initialized) {
+            glfwSetWindowTitle(s_Window, title.c_str());
+        }
+        s_Title = title;
+    }
+
+    void Window::SetVSync(bool enabled) {
+		if (enabled)
+			glfwSwapInterval(1);
+		else
+			glfwSwapInterval(0);
+        
+        s_VSyncEnabled = enabled;
     }
 
     void CheckGLError(const char* label) {

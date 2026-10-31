@@ -6,23 +6,18 @@
 #include "Material/Texture.h"
 #include "Mesh/Model.h"
 #include "Mesh/Mesh.h"
+#include "App/App.h"
 #include "Scene/Scene.h"
 
 #include <memory>
 
 namespace GLib {
 
-    std::shared_ptr<Scene> CreateScene();
-    void SetActiveScene(std::shared_ptr<Scene> scene);
-    std::shared_ptr<Scene> GetActiveScene();
-
     class Render {
     public:
-        static void Init();
+        static void Init(App* app);
 
         static void BeginFrame();
-        static void BeginFrame(Camera camera, glm::mat4 transform, glm::vec3 camPos);
-        static void BeginFrame(glm::mat4 view, glm::mat4 projection, glm::vec3 camPoss);
         static void EndFrame();
 
         static void SetClearColor(float r, float g, float b, float a);

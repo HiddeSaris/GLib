@@ -16,28 +16,17 @@ namespace GLib {
         m_Registry.on_construct<CameraComponent>().connect<&Scene::OnCameraCreated>(this);
     }
 
-    Scene::~Scene() {
-        for (auto& system : m_Systems){
-            system->OnCleanup(*this);
-        }
-    }
-
     Entity Scene::CreateEntity(const std::string& name) {
         m_NumEntities++;
         
-        Entity entity(m_Registry.create(), GetActiveScene());
+        Entity entity(m_Registry.create(), this);
         entity.Add<TransformComponent>();
         auto& tag = entity.Add<TagComponent>(name.empty() ? "Entity" : name);
         return entity;
     }
 
-    void Scene::UpdateSystems()
-    {
-        CalculateDeltaTime();
-
-        for (auto& system : m_Systems){
-            system->OnUpdate(*this, m_DeltaTime);
-        }
+    Entity Scene::CreateEntity(entt::entity entity) {
+        return Entity(entity, this);
     }
 
     void Scene::OnViewportResize(uint32_t width, uint32_t height) {
@@ -52,12 +41,12 @@ namespace GLib {
     }
 
     Entity Scene::GetPrimaryCamera() const { 
-        return Entity(m_PrimaryCamera, GetActiveScene()); 
+        return m_PrimaryCamera; 
     }
 
     void Scene::SetPrimaryCamera(Entity cam) {
         if (cam.Has<CameraComponent>()){
-            m_PrimaryCamera = cam.GetID();
+            m_PrimaryCamera = cam;
         }
         else {
             std::cout << "Warning [Scene::SetPrimaryCamera]: entity does not have a CameraComponent\n";
@@ -74,8 +63,8 @@ namespace GLib {
     }
 
     void Scene::OnCameraCreated(entt::registry& registry, entt::entity entity) {
-        if (m_PrimaryCamera == entt::null) {
-            m_PrimaryCamera = entity;
+        if (!m_PrimaryCamera) {
+            m_PrimaryCamera = CreateEntity(entity);
         }
     }
 }

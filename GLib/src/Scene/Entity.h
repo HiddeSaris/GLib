@@ -9,8 +9,8 @@ namespace GLib {
 
     class Entity {
     public:
-        Entity() = default;
-        Entity(entt::entity handle, std::shared_ptr<Scene> scene);
+        //Entity() = default;
+        Entity(entt::entity handle, Scene* scene);
         Entity(const Entity& other) = default;
         
         template<typename T, typename... Args>
@@ -34,9 +34,9 @@ namespace GLib {
             return m_Scene->GetRegistry().all_of<T>(m_EntityHandle);
         }
 
-        template<typename T>
-        T& GetOrEmplace() {
-            return m_Scene->GetRegistry().get_or_emplace<T>(m_EntityHandle);
+        template<typename T, typename... Args>
+        T& GetOrEmplace(Args&&... args) {
+            return m_Scene->GetRegistry().get_or_emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
         }
 
         template<typename T>
@@ -57,10 +57,10 @@ namespace GLib {
 
         entt::entity GetID() const { return m_EntityHandle; }
 
-        operator bool() const { return m_EntityHandle != entt::null; }
+        operator bool() const { return m_EntityHandle != entt::null && m_Scene != nullptr; }
     private:
         entt::entity m_EntityHandle{ entt::null };
-        std::shared_ptr<Scene> m_Scene;
+        Scene* m_Scene;
     };
 
 }
