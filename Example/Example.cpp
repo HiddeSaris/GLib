@@ -45,10 +45,7 @@ void update(Scene& scene) {
 }
 
 void camera_move(Scene& scene) {
-    auto camGroup = scene.GetRegistry().group<CameraComponent>();
-    for (auto entity : camGroup) {
-        TransformComponent& trans = scene.CreateEntity(entity).Get<TransformComponent>();
-
+    for (auto [entity, cam, trans] : scene.View<CameraComponent, TransformComponent>().Each()) {
         glm::vec3 direction = trans.GetRotation();
         glm::vec3 right = trans.GetRightVector();
         glm::vec3 up = trans.GetUpVector();
@@ -102,7 +99,7 @@ void camera_move(Scene& scene) {
 }
 
 int main() {
-    App()
+    App() // Ply / Poly
         .AddSystems(Stage::Setup, setup)
         .AddSystems(Stage::Update, update, camera_move)
         .Run();

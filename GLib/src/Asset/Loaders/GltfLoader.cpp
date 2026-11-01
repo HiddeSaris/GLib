@@ -371,7 +371,6 @@ namespace GLib {
             for (Handle<GltfNode> nodeHandle : gltfScene->rootNodes) {
                 auto node = AssetManager::Get(nodeHandle);
                 Entity ent = scene.CreateEntity(node->name);
-                std::cout << "create entity: " << node->name << ", entity: " << (int)ent.GetID() << std::endl;
                 ent.SetParent(root);
                 needsProcessing.push({ent, node});
             }
@@ -391,7 +390,6 @@ namespace GLib {
                 auto gltfMesh = AssetManager::Get(node->mesh.value());
                 for (auto prim : gltfMesh->primitives) {
                     Entity child = ent.CreateChild(prim.name);
-                    std::cout << "create child: mesh_" << prim.name << ", entity: " << (int)child.GetID() << std::endl;
                     child.Add<MeshComponent>(prim.mesh);
                     if (prim.material.has_value()) {
                         child.Add<MaterialComponent>(prim.material.value());
@@ -402,7 +400,6 @@ namespace GLib {
             for (auto childHandle : node->children) {
                 auto child = AssetManager::Get(childHandle);
                 Entity entity = scene.CreateEntity(child->name);
-                std::cout << "create entity: " << child->name << ", entity: " << (int)entity.GetID() << std::endl;
                 ent.AddChild(entity);
                 needsProcessing.push({entity, child});
             }
