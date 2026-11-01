@@ -51,7 +51,14 @@ namespace GLib {
         bool IsParentOf(Entity ent);
         void SetParent(Entity parent);
         void AddChild(Entity child);
-        Entity CreateChild(const std::string& name = std::string());
+
+        
+        template<typename... Components>
+        Entity CreateChild(Components&&... components) {
+            Entity child = m_Scene->CreateEntity(std::forward<Components>(components)...);
+            AddChild(child);
+            return child;
+        }
 
         TransformComponent GetWorldTransform();
 

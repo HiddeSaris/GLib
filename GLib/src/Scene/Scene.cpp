@@ -16,16 +16,8 @@ namespace GLib {
         m_Registry.on_construct<CameraComponent>().connect<&Scene::OnCameraCreated>(this);
     }
 
-    Entity Scene::CreateEntity(const std::string& name) {
-        m_NumEntities++;
-        
-        Entity entity(m_Registry.create(), this);
-        entity.Add<TransformComponent>();
-        auto& tag = entity.Add<TagComponent>(name.empty() ? "Entity" : name);
-        return entity;
-    }
-
     Entity Scene::CreateEntity(entt::entity entity) {
+        m_NumEntities++;
         return Entity(entity, this);
     }
 

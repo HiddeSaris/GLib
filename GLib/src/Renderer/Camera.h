@@ -42,7 +42,7 @@ namespace GLib
 
         glm::mat4 m_Projection = glm::mat4(1.0f);
 
-        float m_PerspectiveFOV = glm::radians(45.0f);
+        float m_PerspectiveFOV = 90.0f;
 
         float m_OrthographicSize = 10.0f;
     

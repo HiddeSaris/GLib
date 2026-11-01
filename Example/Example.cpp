@@ -13,16 +13,24 @@ void setup(Scene& scene) {
     std::cout << "Starting...\n";
     Render::SetClearColor(0.5f, 0.7f, 0.9f, 1.0f);
 
-    Entity CameraEntity = scene.CreateEntity("Camera Entity");
-    CameraEntity.Add<CameraComponent>().m_Camera.SetPerspective(90, 0.01f, 1000.0f);
-    CameraEntity.Get<TransformComponent>().Translation = glm::vec3(0.0f, 1.0f, 2.0f);
+    scene.CreateEntity(
+        TagComponent("Camera Entity"),
+        TransformComponent(glm::vec3(0.0f, 1.0f, 2.0f)),
+        CameraComponent()
+    );
 
-    Entity entDir = scene.CreateEntity("DirLight");
-    entDir.Add<DirectionalLightComponent>(glm::vec3(0.6f, -1.0f, 0.4f), glm::vec3(0.9f, 0.7f, 0.3f), 10.0f);
+    scene.CreateEntity(
+        TagComponent("DirLight"),
+        TransformComponent(),
+        DirectionalLightComponent(glm::vec3(0.6f, -1.0f, 0.4f), glm::vec3(0.9f, 0.7f, 0.3f), 10.0f)
+    );
 
     Handle<Gltf> gltf = AssetManager::Load<Gltf>("assets/models/flighthelmet/source/FlightHelmet/FlightHelmet.gltf");
-    auto entHelmet = scene.CreateEntity("helmet");
-    entHelmet.Add<GltfSceneComponent>(gltf);
+    scene.CreateEntity(
+        TagComponent("helmet"), 
+        TransformComponent(),
+        GltfSceneComponent(gltf)
+    );
 }
 
 void update(Scene& scene) {

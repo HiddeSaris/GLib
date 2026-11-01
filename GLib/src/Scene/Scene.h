@@ -17,10 +17,17 @@ namespace GLib {
     class Scene {
     public:
         Scene();
-
-        Entity CreateEntity(const std::string& name = std::string());
+        
+        template<typename... Components>
+        Entity CreateEntity(Components&&... components) {
+            m_NumEntities++;
+            
+            Entity entity(m_Registry.create(), this);
+            AddComponents(entity, std::forward<Components>(components)...);
+            return entity;
+        }
         Entity CreateEntity(entt::entity entity);
-
+        
         void OnViewportResize(uint32_t width, uint32_t height);
 
         
@@ -50,7 +57,7 @@ namespace GLib {
 
     private:
         entt::registry m_Registry;
-        int m_NumEntities;
+        size_t m_NumEntities;
         Entity m_PrimaryCamera = Entity(entt::null, this);
         glm::vec3 m_Gravity{0.0f, -9.81f, 0.0f};
         std::chrono::steady_clock::time_point m_LastFrameTime;
@@ -58,6 +65,13 @@ namespace GLib {
     private:
         double CalculateDeltaTime();
         void OnCameraCreated(entt::registry& registry, entt::entity entity);
+
+        template<typename First, typename... Rest>
+        void AddComponents(Entity entity, First& first, Rest&&... rest) {
+            entity.Add<First>(first);
+            AddComponents(entity, std::forward<Rest>(rest)...);
+        }
+        void AddComponents(Entity entity) {}
     };
 
 }

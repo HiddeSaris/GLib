@@ -142,6 +142,9 @@ namespace GLib {
     struct GltfSceneComponent {
         // tell the scene it should add the gltf scene as children of this entity when it is finished loading
         Handle<Gltf> gltf;
+        GltfSceneComponent(const GltfSceneComponent&) = default;
+        GltfSceneComponent(const Handle<Gltf>& gltf)
+            : gltf(gltf) {}
     };
 
     struct MeshComponent {

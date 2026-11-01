@@ -58,12 +58,6 @@ namespace GLib {
     void Entity::AddChild(Entity child) {
         child.SetParent(*this);
     }
-
-    Entity Entity::CreateChild(const std::string& name) {
-        Entity child = m_Scene->CreateEntity(name);
-        AddChild(child);
-        return child;
-    }
     
     TransformComponent Entity::GetWorldTransform() {
         if (!Has<TransformComponent>()) {

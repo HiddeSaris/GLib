@@ -389,11 +389,19 @@ namespace GLib {
             if (node->mesh.has_value()) {
                 auto gltfMesh = AssetManager::Get(node->mesh.value());
                 for (auto prim : gltfMesh->primitives) {
-                    Entity child = ent.CreateChild(prim.name);
-                    child.Add<MeshComponent>(prim.mesh);
-                    if (prim.material.has_value()) {
-                        child.Add<MaterialComponent>(prim.material.value());
-                    }
+                    if (prim.material.has_value())
+                        ent.CreateChild(
+                            TagComponent(prim.name),
+                            TransformComponent(),
+                            MeshComponent(prim.mesh),
+                            MaterialComponent(prim.material.value())
+                        );
+                    else 
+                        ent.CreateChild(
+                            TagComponent(prim.name),
+                            TransformComponent(),
+                            MeshComponent(prim.mesh)
+                        );
                 }
             }
 
