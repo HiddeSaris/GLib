@@ -14,11 +14,26 @@
 
 #include "btBulletDynamicsCommon.h"
 
+#include "imgui.h"
+#include "meta/meta.hpp"
+#include "meta/factory.hpp"
+#include "entt.hpp"
 
 namespace GLib {
 
     class Entity;
     class Scene;
+    // using namespace entt::literals;
+
+    // struct Component {
+    //     Component() = default;
+    //     Component(const Component&) = default;
+        
+    //     virtual std::string GetName() { return typeid(*this).name(); }
+    //     virtual void DrawImGui() const {
+    //         ImGui::CollapsingHeader(typeid(*this).name());
+    //     }
+    // };
 
     struct TagComponent
     {
@@ -29,6 +44,8 @@ namespace GLib {
         TagComponent(const std::string& tag)
             : Tag(tag) {}
     };
+
+    // entt::meta_factory<TagComponent> fac{}; fac.type("Tag"_hs);
 
     struct ChildOf {
         Entity parent;
@@ -155,15 +172,15 @@ namespace GLib {
             : mesh(mesh) {}
     };
 
-    struct ModelComponent {
-        Model m_Model;
+    // struct ModelComponent {
+    //     Model m_Model;
 
-        ModelComponent(const ModelComponent&) = default;
-        ModelComponent(const Model& model)
-            : m_Model(model) {}
-        ModelComponent(const std::string& filepath)
-            : m_Model(filepath) {}
-    };
+    //     ModelComponent(const ModelComponent&) = default;
+    //     ModelComponent(const Model& model)
+    //         : m_Model(model) {}
+    //     ModelComponent(const std::string& filepath)
+    //         : m_Model(filepath) {}
+    // };
 
     struct MaterialComponent {
         Handle<Material> material;

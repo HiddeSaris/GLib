@@ -64,6 +64,7 @@ namespace GLib {
 
         entt::entity GetID() const { return m_EntityHandle; }
 
+        bool operator==(Entity& other);
         operator bool() const { return m_EntityHandle != entt::null && m_Scene != nullptr; }
     private:
         entt::entity m_EntityHandle{ entt::null };

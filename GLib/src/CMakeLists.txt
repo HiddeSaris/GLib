@@ -63,6 +63,12 @@ set(ENTT_ROOT ${PROJECT_SOURCE_DIR}/GLib/vendor/entt)
 add_library(entt INTERFACE)
 target_include_directories(entt INTERFACE ${ENTT_ROOT}/include/entt)
 
+# ---- PFR ----
+set(PFR_ROOT ${PROJECT_SOURCE_DIR}/GLib/vendor/pfr)
+
+add_library(pfr INTERFACE)
+target_include_directories(pfr INTERFACE ${PFR_ROOT}/include)
+
 # ---- BULLET ----
 set(BULLET_ROOT ${PROJECT_SOURCE_DIR}/GLib/vendor/bullet)
 
@@ -125,6 +131,7 @@ add_library(GLib STATIC
     Physics/Bullet.cpp
     Asset/Loaders/GltfLoader.cpp
     App/App.cpp
+    Scene/ImGuiDebug.cpp
 )
 
 target_include_directories(GLib
@@ -137,5 +144,5 @@ target_include_directories(GLib
 
 target_link_libraries(GLib
     PUBLIC  glm assimp imgui entt LinearMath BulletCollision BulletDynamics fastgltf::fastgltf
-    PRIVATE glad opengl32 glfw3 stb_image
+    PRIVATE glad opengl32 glfw3 stb_image pfr
 )

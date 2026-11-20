@@ -379,6 +379,86 @@ namespace GLib {
         //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
 		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
 
+        auto& style = ImGui::GetStyle();
+        auto& colors = style.Colors;
+
+        // Base colors for a pleasant and modern dark theme with dark accents
+        colors[ImGuiCol_Text]                  = {0.92, 0.93, 0.94, 1.00};  // Light grey text for readability
+        colors[ImGuiCol_TextDisabled]         = {0.50, 0.52, 0.54, 1.00};  // Subtle grey for disabled text
+        colors[ImGuiCol_WindowBg]             = {0.14, 0.14, 0.16, 1.00};  // Dark background with a hint of blue
+        colors[ImGuiCol_ChildBg]              = {0.16, 0.16, 0.18, 1.00};  // Slightly lighter for child elements
+        colors[ImGuiCol_PopupBg]              = {0.18, 0.18, 0.20, 1.00};  // Popup background
+        colors[ImGuiCol_Border]                = {0.28, 0.29, 0.30, 0.60};  // Soft border color
+        colors[ImGuiCol_BorderShadow]         = {0.00, 0.00, 0.00, 0.00};  // No border shadow
+        colors[ImGuiCol_FrameBg]              = {0.20, 0.22, 0.24, 1.00};  // Frame background
+        colors[ImGuiCol_FrameBgHovered]      = {0.22, 0.24, 0.26, 1.00};  // Frame hover effect
+        colors[ImGuiCol_FrameBgActive]       = {0.24, 0.26, 0.28, 1.00};  // Active frame background
+        colors[ImGuiCol_TitleBg]              = {0.14, 0.14, 0.16, 1.00};  // Title background
+        colors[ImGuiCol_TitleBgActive]       = {0.16, 0.16, 0.18, 1.00};  // Active title background
+        colors[ImGuiCol_TitleBgCollapsed]    = {0.14, 0.14, 0.16, 1.00};  // Collapsed title background
+        colors[ImGuiCol_MenuBarBg]           = {0.20, 0.20, 0.22, 1.00};  // Menu bar background
+        colors[ImGuiCol_ScrollbarBg]          = {0.16, 0.16, 0.18, 1.00};  // Scrollbar background
+        colors[ImGuiCol_ScrollbarGrab]        = {0.24, 0.26, 0.28, 1.00};  // Dark accent for scrollbar grab
+        colors[ImGuiCol_ScrollbarGrabHovered]= {0.28, 0.30, 0.32, 1.00};  // Scrollbar grab hover
+        colors[ImGuiCol_ScrollbarGrabActive] = {0.32, 0.34, 0.36, 1.00};  // Scrollbar grab active
+        colors[ImGuiCol_CheckMark]            = {0.46, 0.56, 0.66, 1.00};  // Dark blue checkmark
+        colors[ImGuiCol_SliderGrab]           = {0.36, 0.46, 0.56, 1.00};  // Dark blue slider grab
+        colors[ImGuiCol_SliderGrabActive]    = {0.40, 0.50, 0.60, 1.00};  // Active slider grab
+        colors[ImGuiCol_Button]                = {0.24, 0.34, 0.44, 1.00};  // Dark blue button
+        colors[ImGuiCol_ButtonHovered]        = {0.28, 0.38, 0.48, 1.00};  // Button hover effect
+        colors[ImGuiCol_ButtonActive]         = {0.32, 0.42, 0.52, 1.00};  // Active button
+        colors[ImGuiCol_Header]                = {0.24, 0.34, 0.44, 1.00};  // Header color similar to button
+        colors[ImGuiCol_HeaderHovered]        = {0.28, 0.38, 0.48, 1.00};  // Header hover effect
+        colors[ImGuiCol_HeaderActive]         = {0.32, 0.42, 0.52, 1.00};  // Active header
+        colors[ImGuiCol_Separator]             = {0.28, 0.29, 0.30, 1.00};  // Separator color
+        colors[ImGuiCol_SeparatorHovered]     = {0.46, 0.56, 0.66, 1.00};  // Hover effect for separator
+        colors[ImGuiCol_SeparatorActive]      = {0.46, 0.56, 0.66, 1.00};  // Active separator
+        colors[ImGuiCol_ResizeGrip]           = {0.36, 0.46, 0.56, 1.00};  // Resize grip
+        colors[ImGuiCol_ResizeGripHovered]   = {0.40, 0.50, 0.60, 1.00};  // Hover effect for resize grip
+        colors[ImGuiCol_ResizeGripActive]    = {0.44, 0.54, 0.64, 1.00};  // Active resize grip
+        colors[ImGuiCol_Tab]                   = {0.20, 0.22, 0.24, 1.00};  // Inactive tab
+        colors[ImGuiCol_TabHovered]           = {0.28, 0.38, 0.48, 1.00};  // Hover effect for tab
+        colors[ImGuiCol_TabSelected]          = {0.24, 0.34, 0.44, 1.00};  // Active tab color (TabActive)
+        colors[ImGuiCol_TabDimmed]            = {0.20, 0.22, 0.24, 1.00};  // Unfocused tab (TabUnfocused)
+        colors[ImGuiCol_TabDimmedSelected]   = {0.24, 0.34, 0.44, 1.00};  // Active but unfocused tab (TabUnfocusedActive)
+        colors[ImGuiCol_DockingPreview]       = {0.24, 0.34, 0.44, 0.70};  // Docking preview
+        colors[ImGuiCol_DockingEmptyBg]      = {0.14, 0.14, 0.16, 1.00};  // Empty docking background
+        colors[ImGuiCol_PlotLines]            = {0.46, 0.56, 0.66, 1.00};  // Plot lines
+        colors[ImGuiCol_PlotLinesHovered]    = {0.46, 0.56, 0.66, 1.00};  // Hover effect for plot lines
+        colors[ImGuiCol_PlotHistogram]        = {0.36, 0.46, 0.56, 1.00};  // Histogram color
+        colors[ImGuiCol_PlotHistogramHovered]= {0.40, 0.50, 0.60, 1.00};  // Hover effect for histogram
+        colors[ImGuiCol_TableHeaderBg]       = {0.20, 0.22, 0.24, 1.00};  // Table header background
+        colors[ImGuiCol_TableBorderStrong]   = {0.28, 0.29, 0.30, 1.00};  // Strong border for tables
+        colors[ImGuiCol_TableBorderLight]    = {0.24, 0.25, 0.26, 1.00};  // Light border for tables
+        colors[ImGuiCol_TableRowBg]          = {0.20, 0.22, 0.24, 1.00};  // Table row background
+        colors[ImGuiCol_TableRowBgAlt]      = {0.22, 0.24, 0.26, 1.00};  // Alternate row background
+        colors[ImGuiCol_TextSelectedBg]      = {0.24, 0.34, 0.44, 0.35};  // Selected text background
+        colors[ImGuiCol_DragDropTarget]      = {0.46, 0.56, 0.66, 0.90};  // Drag and drop target
+        colors[ImGuiCol_NavCursor]            = {0.46, 0.56, 0.66, 1.00};  // Navigation highlight (NavHighlight)
+        colors[ImGuiCol_NavWindowingHighlight]= {1.00, 1.00, 1.00, 0.70};  // Windowing highlight
+        colors[ImGuiCol_NavWindowingDimBg]  = {0.80, 0.80, 0.80, 0.20};  // Dim background for windowing
+        colors[ImGuiCol_ModalWindowDimBg]   = {0.80, 0.80, 0.80, 0.35};  // Dim background for modal windows
+
+        // Style adjustments
+        style.WindowRounding    = 8.0;  // Softer rounded corners for windows
+        style.FrameRounding     = 4.0;  // Rounded corners for frames
+        style.ScrollbarRounding = 6.0;  // Rounded corners for scrollbars
+        style.GrabRounding      = 4.0;  // Rounded corners for grab elements
+        style.ChildRounding     = 4.0;  // Rounded corners for child windows
+
+        style.WindowTitleAlign  = {0.50, 0.50};  // Centered window title
+        style.WindowPadding     = {10.0, 10.0};  // Comfortable padding
+        style.FramePadding      = {6.0, 4.0};    // Frame padding
+        style.ItemSpacing       = {8.0, 8.0};    // Item spacing
+        style.ItemInnerSpacing  = {8.0, 6.0};    // Inner item spacing
+        style.IndentSpacing     = 22.0;          // Indentation spacing
+
+        style.ScrollbarSize = 16.0;  // Scrollbar size
+        style.GrabMinSize   = 10.0;  // Minimum grab size
+
+        style.AntiAliasedLines = true;  // Enable anti-aliased lines
+        style.AntiAliasedFill  = true;  // Enable anti-aliased fill
+
         // ImGuiViewport* viewport = ImGui::GetWindowViewport();
         // viewport->Flags |= ImGuiViewportFlags_TopMost;
         // Setup Platform/Renderer backends

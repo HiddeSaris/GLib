@@ -12,11 +12,17 @@ bool cursorEnabled = true;
 void setup(Scene& scene) {
     std::cout << "Starting...\n";
     Render::SetClearColor(0.5f, 0.7f, 0.9f, 1.0f);
-
+    
     scene.CreateEntity(
         TagComponent("Camera Entity"),
         TransformComponent(glm::vec3(0.0f, 1.0f, 2.0f)),
         CameraComponent()
+    );
+    
+    scene.CreateEntity(
+        TagComponent("PointLight"),
+        TransformComponent().SetTranslation(glm::vec3(-1.0f, 0.0f, 1.0f)),
+        PointLightComponent(glm::vec3(0.9f, 0.7f, 0.3f), 10.0f)
     );
 
     scene.CreateEntity(
@@ -34,6 +40,7 @@ void setup(Scene& scene) {
 }
 
 void update(Scene& scene) {
+    scene.ShowImGuiDebugMenu();
     if (Input::IsKeyDown(Key::Escape)){
         Window::Close();
     }
@@ -107,7 +114,7 @@ void camera_move(Scene& scene) {
 }
 
 int main() {
-    App() // Ply / Poly
+    App() // Ply / Poly / Vortex / Breeze
         .AddSystems(Stage::Setup, setup)
         .AddSystems(Stage::Update, update, camera_move)
         .Run();

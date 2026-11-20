@@ -370,7 +370,7 @@ namespace GLib {
             auto gltfScene = AssetManager::Get(sceneHandle);
             for (Handle<GltfNode> nodeHandle : gltfScene->rootNodes) {
                 auto node = AssetManager::Get(nodeHandle);
-                Entity ent = scene.CreateEntity(node->name);
+                Entity ent = scene.CreateEntity(TagComponent(node->name));
                 ent.SetParent(root);
                 needsProcessing.push({ent, node});
             }
@@ -407,7 +407,7 @@ namespace GLib {
 
             for (auto childHandle : node->children) {
                 auto child = AssetManager::Get(childHandle);
-                Entity entity = scene.CreateEntity(child->name);
+                Entity entity = scene.CreateEntity(TagComponent(child->name));
                 ent.AddChild(entity);
                 needsProcessing.push({entity, child});
             }

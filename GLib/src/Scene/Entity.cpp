@@ -78,4 +78,9 @@ namespace GLib {
 
         return trans;
     }
+
+    bool Entity::operator==(Entity &other) {
+        return m_EntityHandle == other.GetID();
+    }
+
 };

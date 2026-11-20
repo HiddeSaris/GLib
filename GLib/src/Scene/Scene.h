@@ -6,6 +6,7 @@
 #include "Components.h"
 #include "Entity.h"
 #include "Query.h"
+#include "ImGuiDebug.h"
 
 #include <chrono>
 
@@ -13,6 +14,7 @@ namespace GLib {
 
     class Entity;
     class System;
+    class ImGuiDebug;
 
     class Scene {
     public:
@@ -36,10 +38,13 @@ namespace GLib {
         glm::vec3& GetGravity() { return m_Gravity; }
         Entity GetPrimaryCamera() const;
         double GetDeltaTime() const { return m_DeltaTime; }
+        Entity& GetSelectedEntity() { return m_SelectedEntity; }
         
         void SetGravity(glm::vec3 gravity) { m_Gravity = gravity; }
         
         void SetPrimaryCamera(Entity cam);
+
+        void ShowImGuiDebugMenu() { ImGuiDebug::ShowImGuiDebugMenu(*this); }
 
         template<typename... Components, typename... Args>
         auto View(Args&&... args) {
@@ -62,6 +67,7 @@ namespace GLib {
         glm::vec3 m_Gravity{0.0f, -9.81f, 0.0f};
         std::chrono::steady_clock::time_point m_LastFrameTime;
         double m_DeltaTime;
+        Entity m_SelectedEntity = Entity(entt::null, this);
     private:
         double CalculateDeltaTime();
         void OnCameraCreated(entt::registry& registry, entt::entity entity);
